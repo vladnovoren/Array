@@ -3,34 +3,34 @@
 
 #include <cstddef>
 
-template<typename ElemT, size_t Size>
+template<typename ElemT, size_t size>
 class IStorage {
  public:
   IStorage() {
   }
 
-  IStorage(ElemT* data) : data_(data) {
+  IStorage(ElemT* buffer) : buffer_(buffer) {
   }
 
   virtual ~IStorage() = 0;
 
   ElemT& operator[](const size_t index) {
-    return data_[index];
+    return buffer_[index];
   }
 
   const ElemT& operator[](const size_t index) const {
-    return data_[index];
+    return buffer_[index];
   }
 
   virtual size_t Size() const = 0;
 
- private:
-  ElemT* data_{nullptr};
+ protected:
+  ElemT* buffer_{nullptr};
 
 };
 
-template<typename ElemT, size_t Size>
-IStorage<ElemT, Size>::~IStorage() {
+template<typename ElemT, size_t size>
+IStorage<ElemT, size>::~IStorage() {
 }
 
 #endif /* storage.hpp */

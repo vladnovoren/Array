@@ -7,6 +7,7 @@
 #include <utility>
 #include <cstdint>
 #include <new>
+#include <algorithm>
 #include "istorage.hpp"
 
 size_t UpperBinPower(const size_t a) {
@@ -21,7 +22,7 @@ template<
   typename ElemT,
   size_t N = 0
 >
-class DynamicStorage : IStorage<ElemT, N> {
+class DynamicStorage : public IStorage<ElemT, N> {
  public:
   DynamicStorage() {
   }
@@ -29,18 +30,20 @@ class DynamicStorage : IStorage<ElemT, N> {
   DynamicStorage(const size_t size) : size_(size) {
     capacity_ = CountCapacity(size_);
 
-    buffer_ = static_cast<ElemT*>(new(capacity_ * sizeof(ElemT)));
-    if (buffer_ == nullptr) {
-      throw std::bad_alloc();
+    try {
+      this->buffer_ = static_cast<ElemT*>(operator new(capacity_ * sizeof(ElemT)));
+    } catch (const std::bad_alloc& e) {
+      throw;
     }
 
     PlaceDefault();
   }
 
   DynamicStorage(const DynamicStorage& other) : size_(other.size_), capacity_(other.capacity_) {
-    buffer_ = static_cast<ElemT*>(new(capacity_ * sizeof(ElemT)));
-    if (buffer_ == nullptr) {
-      throw std::bad_alloc();
+    try {
+      this->buffer_ = static_cast<ElemT*>(operator new(capacity_ * sizeof(ElemT)));
+    } catch (const std::bad_alloc& e) {
+      throw;
     }
 
     PlaceFromOther(other);
@@ -49,11 +52,11 @@ class DynamicStorage : IStorage<ElemT, N> {
   DynamicStorage(DynamicStorage&& other) {
     std::swap(size_, other.size_);
     std::swap(capacity_, other.capacity_);
-    std::swap(buffer_, other.buffer_);
+    std::swap(this->buffer_, other.buffer_);
   }
 
   ~DynamicStorage() override {
-    delete[] buffer_;
+    DestructBuffer(this->buffer_, 0, size_ - 1);
   }
 
   DynamicStorage& operator=(const DynamicStorage& other) {
@@ -66,7 +69,7 @@ class DynamicStorage : IStorage<ElemT, N> {
   }
 
   DynamicStorage& operator=(DynamicStorage&& other) {
-    delete[] buffer_;
+    DestructBuffer(this->buffer_, 0, size_ - 1);
 
     size_ = other.size_;
     other.size_ = 0;
@@ -74,7 +77,7 @@ class DynamicStorage : IStorage<ElemT, N> {
     capacity_ = other.capacity_;
     other.capacity_ = 0;
 
-    buffer_ = other.buffer_;
+    this->buffer_ = other.buffer_;
     other.buffer_ = nullptr;
 
     return *this;
@@ -85,29 +88,38 @@ class DynamicStorage : IStorage<ElemT, N> {
   }
 
   void Resize(const size_t new_size) {
-    size_ = new_size;
-    UpdateCapacity();
-    UpdateBufferWithNewCapacity();
+    if (UpdateCapacity(new_size)) {
+      UpdateBufferWithNewCapacity(new_size);
+    }
   }
 
  private:
-  void UpdateCapacity() {
-    size_t req_capacity = CountCapacity();
+  bool UpdateCapacity(const size_t new_size) {
+    size_t req_capacity = CountCapacity(new_size);
     if (req_capacity <= capacity_) {
-      return;
+      return false;
     }
     capacity_ = req_capacity;
+    return true;
   }
 
-  void UpdateBufferWithNewCapacity() {
-    ElemT* old_data = buffer_;
-    buffer_ = static_cast<ElemT*>(new(capacity_ * sizeof(ElemT)));
-    if (buffer_ == nullptr) {
-      throw std::bad_alloc();
+  void UpdateBufferWithNewCapacity(const size_t new_size) {
+    ElemT* old_buffer = this->buffer_;
+    try {
+      this->buffer_ = static_cast<ElemT*>(operator new(capacity_ * sizeof(ElemT)));
+    } catch (const std::bad_alloc& e) {
+      throw;
     }
 
-    PlaceFromOtherBuffer(old_data);
-    Destruct(0, )
+    size_t min_size = std::min(size_, new_size);
+    PlaceDefault()
+    if (new_size > size_) {
+      PlaceDefault(size_ + 1, new_size - 1);
+    } else {
+
+    }
+    DestructBuffer(old_buffer, 0, size_);
+    size_ = new_size;
   }
 
   size_t CountCapacity(const size_t size) {
@@ -118,9 +130,9 @@ class DynamicStorage : IStorage<ElemT, N> {
     }
   }
 
-  void PlaceDefault() {
-    for (size_t i = 0; i < size; ++i) {
-      new (buffer_ + i) ElemT();
+  void PlaceDefault(const size_t left, const size_t right) {
+    for (size_t i = left; i <= right; ++i) {
+      new (this->buffer_ + i) ElemT();
     }
   }
 
@@ -128,26 +140,23 @@ class DynamicStorage : IStorage<ElemT, N> {
     PlaceFromOtherBuffer(other.buffer_);
   }
 
-  void PlaceFromOtherBuffer(const ElemT* other) {
-    for (size_t i = 0; i < size_; ++i) {
-      new (buffer_ + i) ElemT(other[i]);
-    }
-  }
-
-  void DestructOne(const size_t index) {
-    buffer_[index].~ElemT();
-  }
-
-  void Destruct(const size_t left, const size_t right) {
+  void PlaceFromOtherBuffer(const ElemT* other, const size_t left, const size_t right) {
     for (size_t i = left; i <= right; ++i) {
-      DestructOne(i);
+      new (this->buffer_ + i) ElemT(other[i]);
     }
+  }
+
+  void DestructBuffer(ElemT* buffer, const size_t left, const size_t right) {
+    assert(buffer != nullptr);
+
+    for (size_t i = left; i <= right; ++i) {
+      buffer[i].~ElemT();
+    }
+    operator delete(buffer);
   }
 
  private:
   static const size_t MIN_CAPACITY = 8;
-
-  ElemT* buffer_{nullptr};
 
   size_t size_{0};
   size_t capacity_{0};
