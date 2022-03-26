@@ -46,7 +46,7 @@ class DynamicStorage : public IStorage<ElemT, N> {
       throw;
     }
 
-    PlaceFromOther(other);
+    PlaceFromOtherBuffer(other.buffer_, 0, size_);
   }
 
   DynamicStorage(DynamicStorage&& other) {
@@ -112,13 +112,11 @@ class DynamicStorage : public IStorage<ElemT, N> {
     }
 
     size_t min_size = std::min(size_, new_size);
-    PlaceDefault()
-    if (new_size > size_) {
-      PlaceDefault(size_ + 1, new_size - 1);
-    } else {
-
-    }
+    PlaceFromOtherBuffer(old_buffer, 0, min_size - 1);
     DestructBuffer(old_buffer, 0, size_);
+    if (size_ < new_size) {
+      PlaceDefault(size_, new_size - 1);
+    }
     size_ = new_size;
   }
 
@@ -134,10 +132,6 @@ class DynamicStorage : public IStorage<ElemT, N> {
     for (size_t i = left; i <= right; ++i) {
       new (this->buffer_ + i) ElemT();
     }
-  }
-
-  void PlaceFromOther(const DynamicStorage& other) {
-    PlaceFromOtherBuffer(other.buffer_);
   }
 
   void PlaceFromOtherBuffer(const ElemT* other, const size_t left, const size_t right) {
