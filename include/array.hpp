@@ -8,22 +8,19 @@ template<
   template <typename StorageT, size_t StorageSize> class Storage = DynamicStorage,
   size_t N = 0
 >
-class Array {
+class Array : public Storage<ElemT, N> {
  public:
   Array() {
   }
 
-  Array(const size_t size) : storage_(size) {
+  Array(const size_t size) : Storage<ElemT, N>(size) {
   }
 
   Array(const Array& other) = default;
 
   Array(Array&& other) = default;
 
-  
-
  private:
-  DynamicStorage<ElemT> storage_;
 
 };
 
