@@ -57,13 +57,13 @@ template<typename ElemT>
 ElemT* SafeCopy(ElemT* src, const size_t dst_size, const size_t src_size) {
   assert(src_size <= dst_size);
 
-  ElemT* dst = new ElemT[dst_size];
+  ElemT* dst = static_cast<ElemT*>(::operator new(dst_size * sizeof(ElemT)));
   try {
     for (size_t i = 0; i < src_size; ++i) {
       dst[i] = src[i];
     }
   } catch (...) {
-    delete[] dst;
+    Destruct(dst, dst_size);
     throw;
   }
   return dst;
