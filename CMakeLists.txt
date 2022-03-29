@@ -12,10 +12,14 @@ add_compile_options(
 
   -Werror
 
+  -Og
+  -g
   -fsanitize=address
 )
 
 add_link_options(
+  -Og
+  -g
   -fsanitize=address
 )
 
