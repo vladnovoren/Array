@@ -6,6 +6,19 @@ set(CMAKE_CXX_STANDARD 20)
 
 project(Array)
 
+add_compile_options(
+  -Wall
+  -Wextra
+
+  -Werror
+
+  -fsanitize=address
+)
+
+add_link_options(
+  -fsanitize=address
+)
+
 add_executable(array src/array.cpp)
 add_executable(dynamic_storage src/dynamic_storage.cpp)
 add_executable(static_storage src/static_storage.cpp)
