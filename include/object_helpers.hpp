@@ -64,6 +64,10 @@ ElemT* SafeCopy(ElemT* src, const size_t dst_size, const size_t src_size) {
       CopyConstruct(dst + i, src[i]);
       ++constructed;
     }
+    for (size_t i = constructed; i < dst_size; ++i) {
+      DefaultConstruct(dst + i);
+      ++constructed;
+    }
   } catch (...) {
     Destruct(dst, constructed);
     ::operator delete(dst);
@@ -71,5 +75,15 @@ ElemT* SafeCopy(ElemT* src, const size_t dst_size, const size_t src_size) {
   }
   return dst;
 }
+
+// template<typename ElemT>
+// ElemT* SafeMove(ElemT* src, const size_t dst_size, const size_t src_size) {
+//   assert(src_size <= dst_size);
+
+//   ElemT* dst = static_cast<ElemT*>(::operator new(dst_size * sizeof(ElemT)));
+//   size_t constructed = 0;
+
+//   return dst;
+// }
 
 #endif /* object_helpers.hpp */

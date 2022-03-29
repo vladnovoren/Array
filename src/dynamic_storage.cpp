@@ -3,20 +3,13 @@
 
 int main() {
   try {
-    DynamicStorage<int> storage(1000);
+    DynamicStorage<DynamicStorage<int>> matrix;
     for (size_t i = 0; i < 1000; ++i) {
-      storage[i] = i;
+      matrix.Resize(rand() % 10000);
     }
-    for (size_t i = 0; i < 1000; ++i) {
-      storage.Resize(rand() % 1000000);
-    }
-    for (int i = 0; i < 1000; ++i) {
-      storage.PushBack(1);
-    }
-    for (int i = 0; i < 1000; ++i) {
-      storage.PopBack();
-    }
-    DynamicStorage<int> copy(storage);
+
+    // DynamicStorage<DynamicStorage<int>> matrix;
+    // matrix.Resize(100);
   } catch (std::bad_alloc& e) {
     std::cout << "Array allocation failed: " << e.what() << '\n';
   }

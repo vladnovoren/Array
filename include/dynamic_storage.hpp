@@ -26,6 +26,7 @@ class DynamicStorage : public IStorage<ElemT, N> {
 
   DynamicStorage(const size_t size) : IStorage<ElemT, N>{static_cast<ElemT*>(::operator new(size * sizeof(ElemT)))},
     size_(size), capacity_(size) {
+    DefaultConstruct(buffer_, size_);
   }
 
   DynamicStorage(const DynamicStorage& other) {
@@ -71,7 +72,7 @@ class DynamicStorage : public IStorage<ElemT, N> {
 
     if (new_size <= capacity_) {
       if (new_size < size_) {
-        Destruct(buffer_, new_size, size_ - new_size);
+        Destruct(buffer_, new_size, size_);
       } else {
         while (size_ < new_size) {
           DefaultConstruct(buffer_ + size_);
@@ -83,9 +84,10 @@ class DynamicStorage : public IStorage<ElemT, N> {
       buffer_ = SafeCopy(old_buffer, new_size, std::min(new_size, size_));
       Destruct(old_buffer, size_);
       ::operator delete(old_buffer);
+      capacity_ = new_size;
     }
 
-    size_ = capacity_ = new_size;
+    size_ = new_size;
   }
 
   void PushBack(ElemT new_elem) {
