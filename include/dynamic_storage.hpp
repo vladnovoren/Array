@@ -35,8 +35,8 @@ class DynamicStorage : public IStorage<ElemT, N> {
   }
 
   DynamicStorage(DynamicStorage&& other) {
-    std::swap(size_, other.size_);
-    std::swap(capacity_, other.capacity_);
+    std::swap(this->size_, other.size_);
+    std::swap(this->capacity_, other.capacity_);
     std::swap(this->buffer_, other.buffer_);
   }
 
@@ -81,7 +81,8 @@ class DynamicStorage : public IStorage<ElemT, N> {
       }
     } else {
       ElemT* old_buffer = buffer_;
-      buffer_ = SafeCopy(old_buffer, new_size, std::min(new_size, size_));
+      buffer_ = SafeCopy(old_buffer, new_size, size_);
+      DefaultConstruct(buffer_, size_, new_size);
       Destruct(old_buffer, size_);
       ::operator delete(old_buffer);
       capacity_ = new_size;
@@ -99,6 +100,7 @@ class DynamicStorage : public IStorage<ElemT, N> {
       const size_t new_capacity = 2 * size_ + 1;
 
       buffer_ = SafeCopy(old_buffer, new_capacity, size_);
+      Destruct(old_buffer, size_);
       ::operator delete(old_buffer);
 
       capacity_ = new_capacity;
@@ -117,7 +119,7 @@ class DynamicStorage : public IStorage<ElemT, N> {
     --size_;
   }
 
- private:
+ public:
   static const size_t MIN_CAPACITY = 8;
   static const char* const BAD_POP_MSG;
 

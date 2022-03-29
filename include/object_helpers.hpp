@@ -4,11 +4,18 @@
 #include <new>
 #include <cassert>
 
-template<typename ElemT>
-void CopyConstruct(ElemT* elem, const ElemT& other) {
+// template<typename ElemT>
+// void CopyConstruct(ElemT* elem, const ElemT& other) {
+//   assert(elem != nullptr);
+
+//   new (elem) ElemT(other);
+// }
+
+template<typename ElemT, typename ArgT>
+void Construct(ElemT* elem, ArgT&& other) {
   assert(elem != nullptr);
 
-  new (elem) ElemT(other);
+  new (elem) ElemT(std::forward<ArgT>(other));
 }
 
 template<typename ElemT>
@@ -61,11 +68,7 @@ ElemT* SafeCopy(ElemT* src, const size_t dst_size, const size_t src_size) {
   size_t constructed = 0;
   try {
     for (size_t i = 0; i < src_size; ++i) {
-      CopyConstruct(dst + i, src[i]);
-      ++constructed;
-    }
-    for (size_t i = constructed; i < dst_size; ++i) {
-      DefaultConstruct(dst + i);
+      Construct(dst + i, src[i]);
       ++constructed;
     }
   } catch (...) {
@@ -82,7 +85,12 @@ ElemT* SafeCopy(ElemT* src, const size_t dst_size, const size_t src_size) {
 
 //   ElemT* dst = static_cast<ElemT*>(::operator new(dst_size * sizeof(ElemT)));
 //   size_t constructed = 0;
-
+//   try {
+//     for (size_t i = 0; i < src_size; ++i) {
+//       MoveConstruct
+//     }
+//   }
+  
 //   return dst;
 // }
 
