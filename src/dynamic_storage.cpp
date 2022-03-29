@@ -7,6 +7,9 @@ int main() {
     for (size_t i = 0; i < 1000; ++i) {
       storage[i] = i;
     }
+    for (size_t i = 0; i < 1000; ++i) {
+      storage.Resize(rand() % 1000000);
+    }
     DynamicStorage<int> copy(storage);
   } catch (std::bad_alloc& e) {
     std::cout << "Array allocation failed: " << e.what() << '\n';
