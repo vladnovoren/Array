@@ -42,8 +42,7 @@ class DynamicStorage : public IStorage<ElemT, N> {
 
   ~DynamicStorage() override {
     if (buffer_ != nullptr) {
-      Destruct(buffer_, size_);
-      ::operator delete(buffer_);
+      DestructAndDelete(buffer_, size_);
     }
     size_ = 0;
     capacity_ = 0;
@@ -81,10 +80,9 @@ class DynamicStorage : public IStorage<ElemT, N> {
       }
     } else {
       ElemT* old_buffer = buffer_;
-      buffer_ = SafeCopy(old_buffer, new_size, size_);
+      buffer_ = SafeMove(old_buffer, new_size, size_);
       DefaultConstruct(buffer_, size_, new_size);
-      Destruct(old_buffer, size_);
-      ::operator delete(old_buffer);
+      DestructAndDelete(old_buffer, size_);
       capacity_ = new_size;
     }
 
@@ -99,10 +97,8 @@ class DynamicStorage : public IStorage<ElemT, N> {
 
       const size_t new_capacity = 2 * size_ + 1;
 
-      buffer_ = SafeCopy(old_buffer, new_capacity, size_);
-      Destruct(old_buffer, size_);
-      ::operator delete(old_buffer);
-
+      buffer_ = SafeMove(old_buffer, new_capacity, size_);
+      DestructAndDelete(old_buffer, size_);
       capacity_ = new_capacity;
     }
 

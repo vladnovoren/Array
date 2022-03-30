@@ -61,6 +61,12 @@ void Destruct(ElemT* buffer, const size_t size) {
 }
 
 template<typename ElemT>
+void DestructAndDelete(ElemT* buffer, const size_t size) {
+  Destruct(buffer, size);
+  ::operator delete(buffer);
+}
+
+template<typename ElemT>
 ElemT* SafeCopy(ElemT* src, const size_t dst_size, const size_t src_size) {
   assert(src_size <= dst_size);
 
@@ -72,26 +78,30 @@ ElemT* SafeCopy(ElemT* src, const size_t dst_size, const size_t src_size) {
       ++constructed;
     }
   } catch (...) {
-    Destruct(dst, constructed);
-    ::operator delete(dst);
+    DestructAndDelete(dst, constructed);
     throw;
   }
+
   return dst;
 }
 
-// template<typename ElemT>
-// ElemT* SafeMove(ElemT* src, const size_t dst_size, const size_t src_size) {
-//   assert(src_size <= dst_size);
+template<typename ElemT>
+ElemT* SafeMove(ElemT* src, const size_t dst_size, const size_t src_size) {
+  assert(src_size <= dst_size);
 
-//   ElemT* dst = static_cast<ElemT*>(::operator new(dst_size * sizeof(ElemT)));
-//   size_t constructed = 0;
-//   try {
-//     for (size_t i = 0; i < src_size; ++i) {
-//       MoveConstruct
-//     }
-//   }
-  
-//   return dst;
-// }
+  ElemT* dst = static_cast<ElemT*>(::operator new(dst_size * sizeof(ElemT)));
+  size_t constructed = 0;
+  try {
+    for (size_t i = 0; i < src_size; ++i) {
+      Construct(dst + i, std::move(src[i]));
+      ++constructed;
+    }
+  } catch (...) {
+    DestructAndDelete(dst, constructed);
+    throw;
+  }
+
+  return dst;
+}
 
 #endif /* object_helpers.hpp */
