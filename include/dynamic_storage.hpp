@@ -49,18 +49,26 @@ class DynamicStorage : public IStorage<ElemT, N> {
   }
 
   DynamicStorage& operator=(const DynamicStorage& other) {
+    if (this == &other) {
+      return *this;
+    }
+
     DynamicStorage tmp(other);
     std::swap(*this, tmp);
     return *this;
   }
 
   DynamicStorage& operator=(DynamicStorage&& other) {
+    if (this == &other) {
+      return *this;
+    }
+
     DynamicStorage tmp(other);
     std::swap(*this, other);
     return *this;
   }
 
-  size_t Size() const override {
+  [[nodiscard]] size_t Size() const override {
     return size_;
   }
 
@@ -108,16 +116,34 @@ class DynamicStorage : public IStorage<ElemT, N> {
 
   void PopBack() {
     if (size_ == 0) {
-      throw std::runtime_error(BAD_POP_MSG);
+      throw std::runtime_error(BAD_POP_MSG_);
     }
 
     Destruct(&buffer_[size_ - 1]);
     --size_;
   }
 
+  ElemT& operator[](const size_t index) {
+    if (index >= size_) {
+      throw std::range_error(BAD_INDEX_MSG_);
+    }
+
+    return buffer_[index];
+  }
+
+  [[nodiscard]] const ElemT& operator[](const size_t index) const {
+    if (index >= size_) {
+      throw std::range_error(BAD_INDEX_MSG_);
+    }
+
+    return buffer_[index];
+  }
+
  public:
   static const size_t MIN_CAPACITY = 8;
-  static const char* const BAD_POP_MSG;
+
+  static const char* const BAD_POP_MSG_;
+  static const char* const BAD_INDEX_MSG_;
 
   size_t size_{0};
   size_t capacity_{0};
@@ -125,7 +151,10 @@ class DynamicStorage : public IStorage<ElemT, N> {
 };
 
 template<typename ElemT, size_t N>
-const char* const DynamicStorage<ElemT, N>::BAD_POP_MSG = "attempt to remove the last element of an empty vector";
+const char* const DynamicStorage<ElemT, N>::BAD_POP_MSG_ = "attempt to remove the last element of an empty vector";
+
+template<typename ElemT, size_t N>
+const char* const DynamicStorage<ElemT, N>::BAD_INDEX_MSG_ = "trying to access on vector with invalid index";
 
 
 #endif /* dynamic_storage.hpp */

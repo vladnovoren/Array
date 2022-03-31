@@ -3,11 +3,30 @@
 #include <ctime>
 
 int main() {
+  srand(time(NULL));
   try {
-    srand(time(NULL));
-    Array<int> array(10000000000);
+    for (size_t i = 0; i < 100; ++i) {
+      Array<Array<int>> matrix;
+      for (size_t i = 0; i < 1000; ++i) {
+        matrix.Resize(rand() % 10000);
+      }
+
+      for (size_t i = 0; i < 1000; ++i) {
+        matrix.PushBack(Array<int>(100));
+      }
+
+      for (size_t i = 0; i < 1000; ++i) {
+        matrix.Resize(rand() % 10000);
+      }
+
+      for (size_t i = 0; i < 1000; ++i) {
+        matrix.PushBack(Array<int>(100));
+      }
+    }
   } catch (std::bad_alloc& e) {
     std::cout << "Array allocation failed: " << e.what() << '\n';
+  } catch (std::runtime_error& e) {
+    std::cout << "Runtime error: " << e.what() << '\n';
   }
   return 0;
 }

@@ -4,29 +4,22 @@
 #include <new>
 #include <cassert>
 
-// template<typename ElemT>
-// void CopyConstruct(ElemT* elem, const ElemT& other) {
-//   assert(elem != nullptr);
-
-//   new (elem) ElemT(other);
-// }
-
 template<typename ElemT, typename ArgT>
-void Construct(ElemT* elem, ArgT&& other) {
+inline void Construct(ElemT* elem, ArgT&& other) {
   assert(elem != nullptr);
 
   new (elem) ElemT(std::forward<ArgT>(other));
 }
 
 template<typename ElemT>
-void DefaultConstruct(ElemT* elem) {
+inline void DefaultConstruct(ElemT* elem) {
   assert(elem != nullptr);
 
   new (elem) ElemT();
 }
 
 template<typename ElemT>
-void DefaultConstruct(ElemT* buffer, const size_t first, const size_t last) {
+inline void DefaultConstruct(ElemT* buffer, const size_t first, const size_t last) {
   assert(buffer != nullptr);
 
   for (size_t i = first; i < last; ++i) {
@@ -35,19 +28,19 @@ void DefaultConstruct(ElemT* buffer, const size_t first, const size_t last) {
 }
 
 template<typename ElemT>
-void DefaultConstruct(ElemT* buffer, const size_t size) {
+inline void DefaultConstruct(ElemT* buffer, const size_t size) {
   DefaultConstruct(buffer, 0, size);
 }
 
 template<typename ElemT>
-void Destruct(ElemT* elem) {
+inline void Destruct(ElemT* elem) {
   assert(elem != nullptr);
 
   elem->~ElemT();
 }
 
 template<typename ElemT>
-void Destruct(ElemT* buffer, const size_t first, const size_t last) {
+inline void Destruct(ElemT* buffer, const size_t first, const size_t last) {
   assert(buffer != nullptr);
 
   for (size_t i = first; i < last; ++i) {
@@ -56,12 +49,12 @@ void Destruct(ElemT* buffer, const size_t first, const size_t last) {
 }
 
 template<typename ElemT>
-void Destruct(ElemT* buffer, const size_t size) {
+inline void Destruct(ElemT* buffer, const size_t size) {
   Destruct(buffer, 0, size);
 }
 
 template<typename ElemT>
-void DestructAndDelete(ElemT* buffer, const size_t size) {
+inline void DestructAndDelete(ElemT* buffer, const size_t size) {
   Destruct(buffer, size);
   ::operator delete(buffer);
 }
