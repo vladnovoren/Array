@@ -6,13 +6,12 @@
 #include <utility>
 #include <cstdint>
 #include <new>
-#include "istorage.hpp"
 
 template<
   typename ElemT,
   size_t size_
 >
-class StaticStorage : IStorage<ElemT, size_> {
+class StaticStorage {
  public:
   StaticStorage() : data_(static_cast<ElemT*>(buffer_)) {
     for (size_t i = 0; i < size_; ++i) {

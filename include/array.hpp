@@ -36,14 +36,22 @@ class Array {
   }
 
   ElemT& operator[](const size_t index) {
-    return storage_[index];
+    if (index >= Size()) {
+      throw std::runtime_error(BAD_INDEX_MSG_);
+    }
+
+    return storage_.Buffer()[index];
   }
 
   const ElemT& operator[](const size_t index) const {
-    return storage_[index];
+    if (index >= Size()) {
+      throw std::runtime_error(BAD_INDEX_MSG_);
+    }
+
+    return storage_.Buffer()[index];
   }
 
-  size_t Size() const {
+  [[nodiscard]] inline size_t Size() const {
     return storage_.Size();
   }
 
