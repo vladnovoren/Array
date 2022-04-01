@@ -31,7 +31,7 @@ class Array {
 
   Array& operator=(Array&& other) {
     Array tmp(other);
-    std::swap(*this, other);
+    std::swap(storage_, other.storage_);
     return *this;
   }
 

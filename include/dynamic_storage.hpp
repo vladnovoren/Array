@@ -64,7 +64,10 @@ class DynamicStorage {
     }
 
     DynamicStorage tmp(other);
-    std::swap(*this, other);
+    std::swap(buffer_, tmp.buffer_);
+    std::swap(size_, tmp.size_);
+    std::swap(capacity_, tmp.capacity_);
+
     return *this;
   }
 
@@ -76,19 +79,19 @@ class DynamicStorage {
     if (size_ == new_size) {
       return;
     }
-    
+
     if (new_size <= capacity_) {
-      Destruct(buffer_, new_size, size_);
       if (new_size < size_) {
-        
+        Destruct(buffer_, new_size, size_);
       } else {
         while (size_ < new_size) {
           DefaultConstruct(buffer_ + size_);
           ++size_;
         }
       }
-    } else if (new_size == capacity_ + 1) {
+    } else if (size_ == capacity_ && new_size == size_ + 1) {
       DoubleBuffer();
+      DefaultConstruct(buffer_ + size_);
     } else {
       IncreaseBuffer(new_size);
     }
@@ -96,11 +99,12 @@ class DynamicStorage {
     size_ = new_size;
   }
 
-  void PushBack(ElemT new_elem) {
+  template<typename OtherT>
+  void PushBack(OtherT&& new_elem) {
     assert(size_ <= capacity_);
 
     Resize(size_ + 1);
-    buffer_[size_ - 1] = std::move(new_elem);
+    buffer_[size_ - 1] = std::forward<OtherT>(new_elem);
   }
 
   void PopBack() {
@@ -131,15 +135,14 @@ class DynamicStorage {
   }
 
   void IncreaseBuffer(const size_t new_size) {
+    assert(new_size > capacity_);
+    assert(new_size > size_);
+
     ElemT* old_buffer = buffer_;
     buffer_ = SafeMove(old_buffer, new_size, size_);
     DefaultConstruct(buffer_, size_, new_size);
     DestructAndDelete(old_buffer, size_);
     capacity_ = new_size;
-  }
-
-  void DecreaseBuffer() {
-
   }
 
  public:
