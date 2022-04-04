@@ -1,7 +1,11 @@
 #ifndef ARRAY_HPP
 #define ARRAY_HPP
 
+#include "error_msgs.hpp"
+#include <cstddef>
+#include <stdexcept>
 #include "dynamic_storage.hpp"
+#include "static_storage.hpp"
 
 template<
   typename ElemT,
@@ -23,29 +27,29 @@ class Array {
   ~Array() {
   }
 
-  Array& operator=(const Array& other) {
-    Array tmp(other);
+  Array& operator=(const Array& other_copy) {
+    Array tmp(other_copy);
     std::swap(*this, tmp);
     return *this;
   }
 
-  Array& operator=(Array&& other) {
-    Array tmp(other);
-    std::swap(storage_, other.storage_);
+  Array& operator=(Array&& other_move) {
+    Array tmp(other_move);
+    std::swap(storage_, other_move.storage_);
     return *this;
   }
 
-  ElemT& operator[](const size_t index) {
+  [[nodiscard]] ElemT& operator[](const size_t index) {
     if (index >= Size()) {
-      throw std::runtime_error(BAD_INDEX_MSG_);
+      throw std::runtime_error(BAD_INDEX_MSG);
     }
 
     return storage_.Buffer()[index];
   }
 
-  const ElemT& operator[](const size_t index) const {
+  [[nodiscard]] const ElemT& operator[](const size_t index) const {
     if (index >= Size()) {
-      throw std::runtime_error(BAD_INDEX_MSG_);
+      throw std::runtime_error(BAD_INDEX_MSG);
     }
 
     return storage_.Buffer()[index];
@@ -59,12 +63,18 @@ class Array {
     storage_.Resize(new_size);
   }
 
-  void PushBack(ElemT new_elem) {
-    storage_.PushBack(std::move(new_elem));
+  template<typename OtherT>
+  void PushBack(OtherT&& new_elem) {
+    storage_.Resize(storage_.Size() + 1);
+    storage_.Buffer()[storage_.Size() - 1] = std::forward<OtherT>(new_elem);
   }
 
   void PopBack() {
-    storage_.PopBack();
+    if (storage_.Size() == 0) {
+      throw std::range_error(BAD_POP_MSG);
+    }
+
+    storage_.Resize(storage_.Size() - 1);
   }
 
  private:

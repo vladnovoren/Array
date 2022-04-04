@@ -86,7 +86,7 @@ ElemT* SafeMove(ElemT* src, const size_t dst_size, const size_t src_size) {
   size_t constructed = 0;
   try {
     for (size_t i = 0; i < src_size; ++i) {
-      Construct(dst + i, std::move(src[i]));
+      Construct(dst + i, std::move_if_noexcept(src[i]));
       ++constructed;
     }
   } catch (...) {

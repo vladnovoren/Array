@@ -9,18 +9,6 @@ int main() {
       for (size_t i = 0; i < 1000; ++i) {
         matrix.Resize(rand() % 10000);
       }
-
-      for (size_t i = 0; i < 1000; ++i) {
-        matrix.PushBack(DynamicStorage<int>(100));
-      }
-
-      for (size_t i = 0; i < 1000; ++i) {
-        matrix.Resize(rand() % 10000);
-      }
-
-      for (size_t i = 0; i < 1000; ++i) {
-        matrix.PushBack(DynamicStorage<int>(100));
-      }
     }
   } catch (std::bad_alloc& e) {
     std::cout << "Array allocation failed: " << e.what() << '\n';
