@@ -44,7 +44,7 @@ class Array {
       throw std::runtime_error(BAD_INDEX_MSG);
     }
 
-    return storage_.Buffer()[index];
+    return storage_.At(index);
   }
 
   [[nodiscard]] const ElemT& operator[](const size_t index) const {
@@ -52,10 +52,18 @@ class Array {
       throw std::runtime_error(BAD_INDEX_MSG);
     }
 
-    return storage_.Buffer()[index];
+    return storage_.At(index);
   }
 
-  [[nodiscard]] inline size_t Size() const {
+  [[nodiscard]] ElemT& At(const size_t index) noexcept {
+    return storage_.At(index);
+  }
+
+  [[nodiscard]] inline const ElemT& At(const size_t index) const noexcept {
+    return storage_.At(index);
+  }
+
+  [[nodiscard]] inline size_t Size() const noexcept {
     return storage_.Size();
   }
 

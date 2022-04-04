@@ -22,6 +22,9 @@ int main() {
       for (size_t i = 0; i < 1000; ++i) {
         matrix.PushBack(Array<int>(100));
       }
+
+      int a = matrix[0].At(0);
+      printf("%d\n", a);
     }
   } catch (std::bad_alloc& e) {
     std::cout << "Array allocation failed: " << e.what() << '\n';

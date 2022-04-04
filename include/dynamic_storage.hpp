@@ -105,6 +105,14 @@ class DynamicStorage {
     return buffer_;
   }
 
+  [[nodiscard]] inline ElemT& At(const size_t index) {
+    return buffer_[index];
+  }
+
+  [[nodiscard]] inline const ElemT& At(const size_t index) const {
+    return buffer_[index];
+  }
+
   void DoubleBuffer() {
     ElemT* old_buffer = buffer_;
 
