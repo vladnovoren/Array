@@ -19,17 +19,20 @@ inline void DefaultConstruct(ElemT* elem) {
 }
 
 template<typename ElemT>
-inline void DefaultConstruct(ElemT* buffer, const size_t first, const size_t last) {
+inline size_t DefaultConstruct(ElemT* buffer, const size_t first, const size_t last) {
   assert(buffer != nullptr);
 
-  for (size_t i = first; i < last; ++i) {
-    DefaultConstruct(buffer + i);
+  size_t last_constructed = first;
+  while (last_constructed < last) {
+    DefaultConstruct(buffer + last_constructed);
+    ++last_constructed;
   }
+  return last_constructed;
 }
 
 template<typename ElemT>
-inline void DefaultConstruct(ElemT* buffer, const size_t size) {
-  DefaultConstruct(buffer, 0, size);
+inline size_t DefaultConstruct(ElemT* buffer, const size_t size) {
+  return DefaultConstruct(buffer, 0, size);
 }
 
 template<typename ElemT>

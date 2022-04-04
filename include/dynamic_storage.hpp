@@ -24,9 +24,10 @@ class DynamicStorage {
     buffer_{static_cast<ElemT*>(::operator new(MIN_CAPACITY * sizeof(ElemT)))} {
   }
 
-  DynamicStorage(const size_t size) : size_(size), capacity_(size),
-    buffer_{static_cast<ElemT*>(::operator new(size * sizeof(ElemT)))} {
-    DefaultConstruct(buffer_, size_);
+  DynamicStorage(const size_t size) :
+    buffer_{static_cast<ElemT*>(::operator new(size * sizeof(ElemT)))},
+    capacity_{size},
+    size_{DefaultConstruct(buffer_, size)} {
   }
 
   DynamicStorage(const DynamicStorage& other) {
@@ -148,10 +149,10 @@ class DynamicStorage {
  public:
   static const size_t MIN_CAPACITY = 8;
 
-  size_t size_{0};
-  size_t capacity_{0};
-
   ElemT* buffer_{nullptr};
+
+  size_t capacity_{0};
+  size_t size_{0};
 
 };
 
