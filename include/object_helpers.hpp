@@ -4,11 +4,11 @@
 #include <new>
 #include <cassert>
 
-template<typename ElemT, typename ArgT>
-inline void Construct(ElemT* elem, ArgT&& other) {
+template<typename ElemT, typename... ArgsT>
+inline void Construct(ElemT* elem, ArgsT&&... args) {
   assert(elem != nullptr);
 
-  new (elem) ElemT(std::forward<ArgT>(other));
+  new (elem) ElemT(std::forward<ArgsT>(args)...);
 }
 
 template<typename ElemT>
@@ -25,6 +25,23 @@ inline size_t DefaultConstruct(ElemT* buffer, const size_t first, const size_t l
   size_t last_constructed = first;
   while (last_constructed < last) {
     DefaultConstruct(buffer + last_constructed);
+    ++last_constructed;
+  }
+  return last_constructed;
+}
+
+// template<typename ElemT, typename... ArgsT>
+// inline void Construct() {
+
+// }
+
+template<typename ElemT, typename ArgT>
+inline size_t Construct(ElemT* buffer, const size_t size, ArgT&& arg = ElemT()) {
+  assert(buffer != nullptr);
+
+  size_t last_constructed = 0;
+  while (last_constructed < size) {
+    Construct(buffer + last_constructed, std::forward<ArgT>(arg));
     ++last_constructed;
   }
   return last_constructed;

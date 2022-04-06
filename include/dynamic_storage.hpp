@@ -18,17 +18,26 @@ template<
 >
 class DynamicStorage {
  public:
-  DynamicStorage() : buffer_{static_cast<ElemT*>(::operator new(MIN_CAPACITY * sizeof(ElemT)))},
+  DynamicStorage() :
+    buffer_{static_cast<ElemT*>(::operator new(MIN_CAPACITY * sizeof(ElemT)))},
     capacity_{MIN_CAPACITY} {
   }
 
-  DynamicStorage(const size_t size) :
+  DynamicStorage(const size_t size) : 
     buffer_{static_cast<ElemT*>(::operator new(size * sizeof(ElemT)))},
     capacity_{size},
     size_{DefaultConstruct(buffer_, size)} {
   }
 
-  DynamicStorage(const DynamicStorage& other_copy) : buffer_{SafeCopy(other_copy.buffer_, other_copy.size_, other_copy.size_)},
+  template<typename ArgT>
+  DynamicStorage(const size_t size, ArgT&& arg) :
+    buffer_{static_cast<ElemT*>(::operator new(size * sizeof(ElemT)))},
+    capacity_{size},
+    size_{Construct(buffer_, size, arg)} {
+  }
+
+  DynamicStorage(const DynamicStorage& other_copy) :
+    buffer_{SafeCopy(other_copy.buffer_, other_copy.size_, other_copy.size_)},
     capacity_(other_copy.size_), size_{other_copy.size_} {
   }
 
@@ -71,6 +80,14 @@ class DynamicStorage {
 
   [[nodiscard]] inline size_t Capacity() const {
     return capacity_;
+  }
+
+  [[nodiscard]] inline ElemT& At(const size_t index) {
+    return buffer_[index];
+  }
+
+  [[nodiscard]] inline const ElemT& At(const size_t index) const {
+    return buffer_[index];
   }
 
   void Resize(const size_t new_size) {

@@ -1,10 +1,4 @@
-if [ ! -e build/ ]
-then
-mkdir build
-fi
-
+mkdir -p build
 cd build
 cmake ..
-
-cd ..
-cmake --build /home/vladislav/projects/Array/build --target all -- -j 6
+cmake --build ./ --target all -- -j 6
