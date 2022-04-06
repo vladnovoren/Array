@@ -13,17 +13,20 @@ struct Point {
 int main() {
   srand(time(NULL));
   try {
-    for (size_t i = 0; i < 100; ++i) {
+    for (size_t i = 0; i < 1; ++i) {
       Array<Array<int>> matrix;
 
       for (size_t i = 0; i < 1000; ++i) {
         matrix.PushBack(Array<int>(100));
+        matrix.Shrink();
+        matrix[i].Shrink();
       }
-
     }
 
     Array<Point> arr;
     arr.EmplaceBack(1, 2);
+    Point a = arr.Front();
+    printf("%d %d\n", a.x_, a.y_);
   } catch (std::bad_alloc& e) {
     std::cout << "Array allocation failed: " << e.what() << '\n';
   } catch (std::runtime_error& e) {

@@ -48,7 +48,7 @@ class Array {
       throw std::runtime_error(BAD_INDEX_MSG);
     }
 
-    return storage_.Buffer()[index];
+    return storage_.At(index);
   }
 
   [[nodiscard]] const ElemT& operator[](const size_t index) const {
@@ -56,11 +56,23 @@ class Array {
       throw std::runtime_error(BAD_INDEX_MSG);
     }
 
-    return storage_.Buffer()[index];
+    return storage_.At(index);
   }
 
   [[nodiscard]] inline size_t Size() const {
     return storage_.Size();
+  }
+
+  [[nodiscard]] inline ElemT& Front() {
+    if (storage_.Size() == 0) {
+      throw std::logic_error(BAD_FRONT_MSG);
+    }
+
+    return storage_.At(0);
+  }
+
+  [[nodiscard]] inline const ElemT& Front() const {
+    return const_cast<Array*>(this)->Front();
   }
 
   [[nodiscard]] inline ElemT& Back() {
@@ -72,7 +84,7 @@ class Array {
   }
 
   [[nodiscard]] inline const ElemT& Back() const {
-    return static_cast<Array*>(this)->Back();
+    return const_cast<Array*>(this)->Back();
   }
 
   void Resize(const size_t new_size) {
@@ -97,6 +109,10 @@ class Array {
     }
 
     storage_.Resize(storage_.Size() - 1);
+  }
+
+  void Shrink() {
+    storage_.Shrink();
   }
 
  private:

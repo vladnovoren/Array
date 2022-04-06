@@ -19,8 +19,8 @@ template<
 class DynamicStorage {
  public:
   DynamicStorage() :
-    buffer_{static_cast<ElemT*>(::operator new(MIN_CAPACITY * sizeof(ElemT)))},
-    capacity_{MIN_CAPACITY} {
+    buffer_{static_cast<ElemT*>(::operator new(DEFAULT_CAPACITY * sizeof(ElemT)))},
+    capacity_{DEFAULT_CAPACITY} {
   }
 
   DynamicStorage(const size_t size) : 
@@ -114,6 +114,23 @@ class DynamicStorage {
     size_ = new_size;
   }
 
+  void Shrink() {
+    if (capacity_ == size_) {
+      return;
+    }
+
+    ElemT* old_buffer_ = buffer_;
+    if (size_ == 0) {
+      buffer_ = static_cast<ElemT*>(::operator new(DEFAULT_CAPACITY * sizeof(ElemT)));
+      capacity_ = DEFAULT_CAPACITY;
+    } else {
+      buffer_ = SafeMove(old_buffer_, size_, size_);
+      capacity_ = size_;
+    }
+
+    DestructAndDelete(old_buffer_, size_);
+  }
+
   [[nodiscard]] inline ElemT* Buffer() {
     return buffer_;
   }
@@ -150,7 +167,7 @@ class DynamicStorage {
     std::swap(capacity_, other.capacity_);
   }
 
-  static const size_t MIN_CAPACITY = 8;
+  static const size_t DEFAULT_CAPACITY = 8;
 
   ElemT* buffer_{nullptr};
 

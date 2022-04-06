@@ -110,6 +110,9 @@ class StaticStorage {
     }
   }
 
+  void Shrink() {
+  }
+
  private:
   uint8_t raw_buffer_[MaxSize * sizeof(ElemT)];
   ElemT* buffer_ = reinterpret_cast<ElemT*>(raw_buffer_);
