@@ -16,6 +16,8 @@ int main() {
       array.PopBack();
     }
 
+    array.Shrink();
+
   } catch (std::bad_alloc& e) {
     std::cout << "Array allocation failed: " << e.what() << '\n';
   } catch (std::runtime_error& e) {

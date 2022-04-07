@@ -17,11 +17,13 @@ class StaticStorage {
   StaticStorage() {
   }
 
-  StaticStorage(const size_t size) {
-    while (size_ < size) {
-      DefaultConstruct(buffer_ + size_);
-      ++size_;
-    }
+  StaticStorage(const size_t size) :
+    size_{DefaultConstruct(buffer_, size)} {
+  }
+
+  template<typename ArgT>
+  StaticStorage(const size_t size, ArgT&& arg = ElemT()) :
+    size_{Construct(buffer_, size, std::forward<ArgT>(arg))} {
   }
 
   StaticStorage(const StaticStorage& other_copy) {
@@ -47,7 +49,7 @@ class StaticStorage {
   }
 
   StaticStorage& operator=(StaticStorage& other_copy) {
-    if (other_copy == *this) {
+    if (other_copy == this) {
       return *this;
     }
 
@@ -61,12 +63,12 @@ class StaticStorage {
       return *this;
     }
 
-
     for (size_t i = 0; i < other_move.size_; ++i) {
-      Construct(buffer_ + i, std::move(other_move.At(i)));
+      Construct(buffer_ + i, std::move_if_noexcept(other_move.At(i)));
       size_ = std::max(size_, i);
     }
 
+    return *this;
   }
 
   [[nodiscard]] inline size_t Size() const {
@@ -106,6 +108,9 @@ class StaticStorage {
         ++size_;
       }
     }
+  }
+
+  void Shrink() {
   }
 
  private:

@@ -18,17 +18,26 @@ template<
 >
 class DynamicStorage {
  public:
-  DynamicStorage() : buffer_{static_cast<ElemT*>(::operator new(MIN_CAPACITY * sizeof(ElemT)))},
-    capacity_{MIN_CAPACITY} {
+  DynamicStorage() :
+    buffer_{static_cast<ElemT*>(::operator new(DEFAULT_CAPACITY * sizeof(ElemT)))},
+    capacity_{DEFAULT_CAPACITY} {
   }
 
-  DynamicStorage(const size_t size) :
+  DynamicStorage(const size_t size) : 
     buffer_{static_cast<ElemT*>(::operator new(size * sizeof(ElemT)))},
     capacity_{size},
     size_{DefaultConstruct(buffer_, size)} {
   }
 
-  DynamicStorage(const DynamicStorage& other_copy) : buffer_{SafeCopy(other_copy.buffer_, other_copy.size_, other_copy.size_)},
+  template<typename ArgT>
+  DynamicStorage(const size_t size, ArgT&& arg) :
+    buffer_{static_cast<ElemT*>(::operator new(size * sizeof(ElemT)))},
+    capacity_{size},
+    size_{Construct(buffer_, size, arg)} {
+  }
+
+  DynamicStorage(const DynamicStorage& other_copy) :
+    buffer_{SafeCopy(other_copy.buffer_, other_copy.size_, other_copy.size_)},
     capacity_(other_copy.size_), size_{other_copy.size_} {
   }
 
@@ -73,6 +82,14 @@ class DynamicStorage {
     return capacity_;
   }
 
+  [[nodiscard]] inline ElemT& At(const size_t index) {
+    return buffer_[index];
+  }
+
+  [[nodiscard]] inline const ElemT& At(const size_t index) const {
+    return buffer_[index];
+  }
+
   void Resize(const size_t new_size) {
     if (size_ == new_size) {
       return;
@@ -95,6 +112,23 @@ class DynamicStorage {
     }
 
     size_ = new_size;
+  }
+
+  void Shrink() {
+    if (capacity_ == size_) {
+      return;
+    }
+
+    ElemT* old_buffer_ = buffer_;
+    if (size_ == 0) {
+      buffer_ = static_cast<ElemT*>(::operator new(DEFAULT_CAPACITY * sizeof(ElemT)));
+      capacity_ = DEFAULT_CAPACITY;
+    } else {
+      buffer_ = SafeMove(old_buffer_, size_, size_);
+      capacity_ = size_;
+    }
+
+    DestructAndDelete(old_buffer_, size_);
   }
 
   [[nodiscard]] inline ElemT* Buffer() {
@@ -141,7 +175,7 @@ class DynamicStorage {
     std::swap(capacity_, other.capacity_);
   }
 
-  static const size_t MIN_CAPACITY = 8;
+  static const size_t DEFAULT_CAPACITY = 8;
 
   ElemT* buffer_{nullptr};
 

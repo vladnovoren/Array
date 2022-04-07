@@ -20,6 +20,10 @@ class Array {
   Array(const size_t size) : storage_(size) {
   }
 
+  template<typename ArgT>
+  Array(const size_t size, ArgT&& arg) : storage_(size, std::forward<ArgT>(arg)) {
+  }
+
   Array(const Array& other) = default;
 
   Array(Array&& other) = default;
@@ -67,6 +71,30 @@ class Array {
     return storage_.Size();
   }
 
+  [[nodiscard]] inline ElemT& Front() {
+    if (storage_.Size() == 0) {
+      throw std::logic_error(BAD_FRONT_MSG);
+    }
+
+    return storage_.At(0);
+  }
+
+  [[nodiscard]] inline const ElemT& Front() const {
+    return const_cast<Array*>(this)->Front();
+  }
+
+  [[nodiscard]] inline ElemT& Back() {
+    if (storage_.Size() == 0) {
+      throw std::logic_error(BAD_BACK_MSG);
+    }
+
+    return storage_.At(storage_.Size() - 1);
+  }
+
+  [[nodiscard]] inline const ElemT& Back() const {
+    return const_cast<Array*>(this)->Back();
+  }
+
   void Resize(const size_t new_size) {
     storage_.Resize(new_size);
   }
@@ -74,7 +102,13 @@ class Array {
   template<typename OtherT>
   void PushBack(OtherT&& new_elem) {
     storage_.Resize(storage_.Size() + 1);
-    storage_.Buffer()[storage_.Size() - 1] = std::forward<OtherT>(new_elem);
+    storage_.At(storage_.Size() - 1) = std::forward<OtherT>(new_elem);
+  }
+
+  template<typename... ArgsT>
+  void EmplaceBack(ArgsT&&... args) {
+    storage_.Resize(storage_.Size() + 1);
+    Construct(&storage_.At(storage_.Size() - 1), std::forward<ArgsT>(args)...);
   }
 
   void PopBack() {
@@ -83,6 +117,10 @@ class Array {
     }
 
     storage_.Resize(storage_.Size() - 1);
+  }
+
+  void Shrink() {
+    storage_.Shrink();
   }
 
  private:
