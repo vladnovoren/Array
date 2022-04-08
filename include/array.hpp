@@ -210,8 +210,9 @@ class Array<bool, Storage, N> {
       assert(bit < BITS_CNT_);
     }
 
-    BoolProxy(const BoolProxy& other_copy) : byte_(other_copy.byte), bit_(other_copy.bit) {
-    }
+    BoolProxy(const BoolProxy& other_copy) = delete;
+
+    BoolProxy(BoolProxy&& other_move) = delete;
 
     inline bool GetValue() const noexcept {
       return (byte_ >> bit_) & 0x1;
@@ -235,6 +236,11 @@ class Array<bool, Storage, N> {
 
     BoolProxy& operator=(const BoolProxy& other_copy) noexcept {
       SetValue(other_copy.GetValue());
+      return *this;
+    }
+
+    BoolProxy& operator=(BoolProxy&& other_move) noexcept {
+      SetValue(other_move.GetValue());
       return *this;
     }
 

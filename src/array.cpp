@@ -18,6 +18,11 @@ void BoolTest() {
     printf("%d ", (bool)arr[i]);
   }
   printf("\n");
+
+  Array<bool> arr1(10);
+  arr1[0] = arr[0];
+  Array<bool> arr2(std::move(arr));
+  arr1[0] = false;
 }
 
 void CommonTest() {
