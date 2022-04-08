@@ -30,11 +30,6 @@ inline size_t DefaultConstruct(ElemT* buffer, const size_t first, const size_t l
   return last_constructed;
 }
 
-// template<typename ElemT, typename... ArgsT>
-// inline void Construct() {
-
-// }
-
 template<typename ElemT, typename ArgT>
 inline size_t Construct(ElemT* buffer, const size_t size, ArgT&& arg = ElemT()) {
   assert(buffer != nullptr);

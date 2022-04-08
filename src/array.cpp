@@ -10,8 +10,17 @@ struct Point {
   int y_ = 0;
 };
 
-int main() {
-  srand(time(NULL));
+void BoolTest() {
+  Array<bool> arr(10);
+  for (size_t i = 0; i < 10; ++i) {
+    arr[i] = (i % 2);
+    arr[i] = arr[0];
+    printf("%d ", (bool)arr[i]);
+  }
+  printf("\n");
+}
+
+void CommonTest() {
   try {
     for (size_t i = 0; i < 1; ++i) {
       Array<Array<int>> matrix;
@@ -21,6 +30,9 @@ int main() {
         matrix.Shrink();
         matrix[i].Shrink();
       }
+
+      printf("%zu\n", matrix.Size());
+      printf("%zu\n", matrix[0].Size());
 
       int a = matrix[0].At(0);
       printf("%d\n", a);
@@ -37,5 +49,11 @@ int main() {
   } catch (std::logic_error& e) {
     std::cout << "Logic error: " << e.what() << '\n';
   }
+}
+
+int main() {
+  srand(time(NULL));
+  CommonTest();
+  BoolTest();
   return 0;
 }

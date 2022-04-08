@@ -69,7 +69,7 @@ class DynamicStorage {
       return *this;
     }
 
-    DynamicStorage tmp(other_move);
+    DynamicStorage tmp(std::move(other_move));
     this->SwapFields(tmp);
     return *this;
   }
@@ -137,14 +137,6 @@ class DynamicStorage {
 
   [[nodiscard]] inline const ElemT* Buffer() const {
     return buffer_;
-  }
-
-  [[nodiscard]] inline ElemT& At(const size_t index) {
-    return buffer_[index];
-  }
-
-  [[nodiscard]] inline const ElemT& At(const size_t index) const {
-    return buffer_[index];
   }
 
   void DoubleBuffer() {
