@@ -33,26 +33,28 @@ void BoolTest() {
 
 void CommonTest() {
   try {
-    for (size_t i = 0; i < 1; ++i) {
-      Array<Array<int>> matrix;
+    Array<Array<int>> matrix;
+    matrix.PushBack(Array<int>());
 
-      for (size_t i = 0; i < 1000; ++i) {
-        matrix.PushBack(Array<int>(100));
-        matrix.Shrink();
-        matrix[i].Shrink();
-      }
+    // for (size_t i = 0; i < 10; ++i) {
+      // matrix.PushBack(Array<int>());
+    //   // matrix.Shrink();
+    //   // matrix[i].Shrink();
+    // }
 
-      printf("%zu\n", matrix.Size());
-      printf("%zu\n", matrix[0].Size());
+    // Array<int> array(100);
+    // for (size_t i = 0; i < 100; ++i) {
+      // array.PushBack(1);
+    // }
 
-      int a = matrix[0].At(0);
-      printf("%d\n", a);
-    }
+    // printf("%zu\n", matrix.Size());
+    // printf("%zu\n", matrix[0].Size());
 
-    Array<Point> arr;
-    arr.EmplaceBack(1, 2);
-    Point a = arr.Front();
-    printf("%d %d\n", a.x_, a.y_);
+
+    // Array<Point> arr;
+    // arr.EmplaceBack(1, 2);
+    // Point a = arr.Front();
+    // printf("%d %d\n", a.x_, a.y_);
   } catch (std::bad_alloc& e) {
     std::cout << "Array allocation failed: " << e.what() << '\n';
   } catch (std::runtime_error& e) {

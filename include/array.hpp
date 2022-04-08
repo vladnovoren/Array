@@ -17,7 +17,7 @@ class Array {
   Array() {
   }
 
-  Array(const size_t size) : storage_(size) {
+  explicit Array(const size_t size) : storage_(size) {
   }
 
   template<typename ArgT>
@@ -46,8 +46,7 @@ class Array {
       return *this;
     }
 
-    Array tmp(std::move(other_move));
-    std::swap(storage_, tmp.storage_);
+    std::swap(storage_, other_move.storage_);
     return *this;
   }
 
@@ -59,6 +58,7 @@ class Array {
     return storage_.At(index);
   }
 
+  // TODO: стратегии как отдельный класс в шаблон
   [[nodiscard]] ElemT& operator[](const size_t index) {
     if (index >= Size()) {
       throw std::out_of_range(BAD_INDEX_MSG);
@@ -103,16 +103,16 @@ class Array {
     storage_.Resize(new_size);
   }
 
-  template<typename OtherT>
-  void PushBack(OtherT&& new_elem) {
-    storage_.Resize(storage_.Size() + 1);
-    storage_.At(storage_.Size() - 1) = std::forward<OtherT>(new_elem);
-  }
-
+  // TODO: allow to allocate raw memory by storage
   template<typename... ArgsT>
   void EmplaceBack(ArgsT&&... args) {
     storage_.Resize(storage_.Size() + 1);
     Construct(&storage_.At(storage_.Size() - 1), std::forward<ArgsT>(args)...);
+  }
+
+  template<typename OtherT>
+  void PushBack(OtherT&& new_elem) {
+    EmplaceBack(std::forward<OtherT>(new_elem));
   }
 
   void PopBack() {
@@ -253,9 +253,9 @@ class Array<bool, Storage, N> {
       assert(bit < BITS_CNT_);
     }
 
-    BoolProxy(const BoolProxy& other_copy) = delete;
+    // BoolProxy(const BoolProxy& other_copy) = delete;
 
-    BoolProxy(BoolProxy&& other_move) = delete;
+    // BoolProxy(BoolProxy&& other_move) = delete;
 
     inline bool GetValue() const noexcept {
       return (byte_ >> bit_) & 0x1;
@@ -282,10 +282,10 @@ class Array<bool, Storage, N> {
       return *this;
     }
 
-    BoolProxy& operator=(BoolProxy&& other_move) noexcept {
-      SetValue(other_move.GetValue());
-      return *this;
-    }
+    // BoolProxy& operator=(BoolProxy&& other_move) noexcept {
+    //   SetValue(other_move.GetValue());
+    //   return *this;
+    // }
 
    private:
     uint8_t& byte_;

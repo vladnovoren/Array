@@ -42,11 +42,13 @@ class DynamicStorage {
   }
 
   DynamicStorage(DynamicStorage&& other_move) {
+    printf("move constructor\n");
     this->SwapFields(other_move);
   }
 
   ~DynamicStorage() {
     if (buffer_ != nullptr) {
+      printf("size: %zu\n", size_);
       DestructAndDelete(buffer_, size_);
     }
 
@@ -69,8 +71,8 @@ class DynamicStorage {
       return *this;
     }
 
-    DynamicStorage tmp(std::move(other_move));
-    this->SwapFields(tmp);
+    printf("move assignment\n");
+    this->SwapFields(other_move);
     return *this;
   }
 
@@ -101,6 +103,7 @@ class DynamicStorage {
       } else {
         while (size_ < new_size) {
           DefaultConstruct(buffer_ + size_);
+          printf("inc\n");
           ++size_;
         }
       }
