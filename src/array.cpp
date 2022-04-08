@@ -1,5 +1,6 @@
 #include "array.hpp"
 #include <iostream>
+#include <vector>
 #include <ctime>
 
 struct Point {
@@ -23,6 +24,11 @@ void BoolTest() {
   arr1[0] = arr[0];
   Array<bool> arr2(std::move(arr));
   arr1[0] = false;
+
+  std::vector<bool> vec(100);
+  const Array<bool> const_arr(100);
+  arr1[0] = const_arr[0];
+  vec.emplace_back(true);
 }
 
 void CommonTest() {

@@ -193,6 +193,49 @@ class Array<bool, Storage, N> {
     return const_cast<Array*>(this)->operator[](index);
   }
 
+  [[nodiscard]] inline size_t Size() const noexcept {
+    return size_;
+  }
+
+  [[nodiscard]] inline BoolProxy Front() {
+    if (size_ == 0) {
+      throw std::logic_error(BAD_FRONT_MSG);
+    }
+
+    return storage_.At(0);
+  }
+
+  [[nodiscard]] inline const BoolProxy Front() const {
+    return const_cast<Array*>(this)->Front();
+  }
+
+  void Resize(const size_t new_size) {
+    storage_.Resize(CalcSize(new_size));
+  }
+
+  void PushBack(bool value) {
+    storage_.Resize(CalcSize(size_ + 1));
+    size_++;
+
+    storage_.At(size_ - 1) = value;
+  }
+
+  void EmplaceBack(bool value) {
+    PushBack(value);
+  }
+
+  void PopBack() {
+    if (size_ == 0) {
+      throw std::logic_error(BAD_POP_MSG);
+    }
+
+    storage_.Resize(size_ - 1);
+  }
+
+  void Shrink() {
+    storage_.Shrink();
+  }
+
  private:
   void SwapFields(Array& other) {
     std::swap(storage_, other.storage_);
