@@ -13,22 +13,15 @@ struct Point {
 
 void BoolTest() {
   Array<bool> arr(10);
+
   for (size_t i = 0; i < 10; ++i) {
-    arr[i] = (i % 2);
-    arr[i] = arr[0];
-    printf("%d ", (bool)arr[i]);
+    arr[i] = i % 2;
+  }
+
+  for (size_t i = 0; i < 10; ++i) {
+    printf("%d ", bool(arr[i]));
   }
   printf("\n");
-
-  Array<bool> arr1(10);
-  arr1[0] = arr[0];
-  Array<bool> arr2(std::move(arr));
-  arr1[0] = false;
-
-  std::vector<bool> vec(100);
-  const Array<bool> const_arr(100);
-  arr1[0] = const_arr[0];
-  vec.emplace_back(true);
 }
 
 void CommonTest() {

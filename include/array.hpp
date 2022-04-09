@@ -103,7 +103,6 @@ class Array {
     storage_.Resize(new_size);
   }
 
-  // TODO: allow to allocate raw memory by storage
   template<typename... ArgsT>
   void EmplaceBack(ArgsT&&... args) {
     storage_.ReserveBack();
@@ -218,14 +217,14 @@ class Array<bool, Storage, N> {
     storage_.Resize(CalcSize(new_size));
   }
 
-  void PushBack(bool value) {
+  void EmplaceBack(bool value) {
     storage_.Resize(CalcSize(size_ + 1));
     size_++;
 
     storage_.At(size_ - 1) = value;
   }
 
-  void EmplaceBack(bool value) {
+  void PushBack(bool value) {
     PushBack(value);
   }
 
@@ -258,10 +257,6 @@ class Array<bool, Storage, N> {
       assert(bit < BITS_CNT_);
     }
 
-    // BoolProxy(const BoolProxy& other_copy) = delete;
-
-    // BoolProxy(BoolProxy&& other_move) = delete;
-
     inline bool GetValue() const noexcept {
       return (byte_ >> bit_) & 0x1;
     }
@@ -286,11 +281,6 @@ class Array<bool, Storage, N> {
       SetValue(other_copy.GetValue());
       return *this;
     }
-
-    // BoolProxy& operator=(BoolProxy&& other_move) noexcept {
-    //   SetValue(other_move.GetValue());
-    //   return *this;
-    // }
 
    private:
     uint8_t& byte_;
