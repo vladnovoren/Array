@@ -106,8 +106,13 @@ class Array {
   // TODO: allow to allocate raw memory by storage
   template<typename... ArgsT>
   void EmplaceBack(ArgsT&&... args) {
-    storage_.Resize(storage_.Size() + 1);
-    Construct(&storage_.At(storage_.Size() - 1), std::forward<ArgsT>(args)...);
+    storage_.ReserveBack();
+    try {
+      Construct(&storage_.At(storage_.Size() - 1), std::forward<ArgsT>(args)...);
+    } catch (...) {
+      storage_.RollBackReservedBack();
+      throw;
+    }
   }
 
   template<typename OtherT>

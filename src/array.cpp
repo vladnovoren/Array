@@ -36,25 +36,25 @@ void CommonTest() {
     Array<Array<int>> matrix;
     matrix.PushBack(Array<int>());
 
-    // for (size_t i = 0; i < 10; ++i) {
-      // matrix.PushBack(Array<int>());
-    //   // matrix.Shrink();
-    //   // matrix[i].Shrink();
-    // }
+    for (size_t i = 0; i < 10; ++i) {
+      matrix.PushBack(Array<int>());
+      matrix.Shrink();
+      matrix[i].Shrink();
+    }
 
-    // Array<int> array(100);
-    // for (size_t i = 0; i < 100; ++i) {
-      // array.PushBack(1);
-    // }
+    Array<int> array(100);
+    for (size_t i = 0; i < 100; ++i) {
+      array.PushBack(1);
+    }
 
-    // printf("%zu\n", matrix.Size());
-    // printf("%zu\n", matrix[0].Size());
+    printf("%zu\n", matrix.Size());
+    printf("%zu\n", matrix[0].Size());
 
 
-    // Array<Point> arr;
-    // arr.EmplaceBack(1, 2);
-    // Point a = arr.Front();
-    // printf("%d %d\n", a.x_, a.y_);
+    Array<Point> arr;
+    arr.EmplaceBack(1, 2);
+    Point a = arr.Front();
+    printf("%d %d\n", a.x_, a.y_);
   } catch (std::bad_alloc& e) {
     std::cout << "Array allocation failed: " << e.what() << '\n';
   } catch (std::runtime_error& e) {

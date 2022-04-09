@@ -110,6 +110,19 @@ class StaticStorage {
     }
   }
 
+  void ReserveBack() {
+    if (size_ == MaxSize) {
+      throw std::logic_error(BAD_PUSH_BACK);
+    }
+    ++size_;
+  }
+
+  void RollBackReservedBack() {
+    assert(size_ != 0);
+
+    --size_;
+  }
+
   void Shrink() {
   }
 

@@ -42,13 +42,11 @@ class DynamicStorage {
   }
 
   DynamicStorage(DynamicStorage&& other_move) {
-    printf("move constructor\n");
     this->SwapFields(other_move);
   }
 
   ~DynamicStorage() {
     if (buffer_ != nullptr) {
-      printf("size: %zu\n", size_);
       DestructAndDelete(buffer_, size_);
     }
 
@@ -71,7 +69,6 @@ class DynamicStorage {
       return *this;
     }
 
-    printf("move assignment\n");
     this->SwapFields(other_move);
     return *this;
   }
@@ -92,7 +89,7 @@ class DynamicStorage {
     return buffer_[index];
   }
 
-  void Resize(const size_t new_size, bool construct = true) {
+  void Resize(const size_t new_size) {
     if (size_ == new_size) {
       return;
     }
@@ -101,11 +98,9 @@ class DynamicStorage {
       if (new_size < size_) {
         Destruct(buffer_, new_size, size_);
       } else {
-        if (construct) {
-          while (size_ < new_size) {
-            DefaultConstruct(buffer_ + size_);
-            ++size_;
-          }
+        while (size_ < new_size) {
+          DefaultConstruct(buffer_ + size_);
+          ++size_;
         }
       }
     } else if (size_ == capacity_ && new_size == size_ + 1) {
@@ -118,12 +113,15 @@ class DynamicStorage {
     size_ = new_size;
   }
 
-  void RequireCapacity(const size_t at_least_cpcty) {
-    if (at_least_cpcty <= capacity_) {
-      return;
+  void ReserveBack() {
+    if (size_ == capacity_) {
+      DoubleBuffer();
     }
+    ++size_;
+  }
 
-    if (at_least_cpcty )
+  void RollBackReservedBack() {
+    --size_;
   }
 
   void Shrink() {
