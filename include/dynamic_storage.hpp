@@ -92,7 +92,7 @@ class DynamicStorage {
     return buffer_[index];
   }
 
-  void Resize(const size_t new_size) {
+  void Resize(const size_t new_size, bool construct = true) {
     if (size_ == new_size) {
       return;
     }
@@ -101,10 +101,11 @@ class DynamicStorage {
       if (new_size < size_) {
         Destruct(buffer_, new_size, size_);
       } else {
-        while (size_ < new_size) {
-          DefaultConstruct(buffer_ + size_);
-          printf("inc\n");
-          ++size_;
+        if (construct) {
+          while (size_ < new_size) {
+            DefaultConstruct(buffer_ + size_);
+            ++size_;
+          }
         }
       }
     } else if (size_ == capacity_ && new_size == size_ + 1) {
@@ -115,6 +116,14 @@ class DynamicStorage {
     }
 
     size_ = new_size;
+  }
+
+  void RequireCapacity(const size_t at_least_cpcty) {
+    if (at_least_cpcty <= capacity_) {
+      return;
+    }
+
+    if (at_least_cpcty )
   }
 
   void Shrink() {
