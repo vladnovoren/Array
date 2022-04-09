@@ -30,6 +30,7 @@ inline size_t DefaultConstruct(ElemT* buffer, const size_t first, const size_t l
   return last_constructed;
 }
 
+// TODO: remove this function, it works incorrect: arg moves multiple time
 template<typename ElemT, typename ArgT>
 inline size_t Construct(ElemT* buffer, const size_t size, ArgT&& arg = ElemT()) {
   assert(buffer != nullptr);

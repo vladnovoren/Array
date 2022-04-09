@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <ctime>
+#include "chunked_storage.hpp"
 
 struct Point {
   Point() {}
@@ -61,5 +62,7 @@ int main() {
   srand(time(NULL));
   CommonTest();
   BoolTest();
+  ChunkedStorage<int> storage;
+  printf("%zu\n", ChunkedStorage<int>::CHUNK_SIZE_);
   return 0;
 }
