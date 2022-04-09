@@ -58,7 +58,6 @@ class Array {
     return storage_.At(index);
   }
 
-  // TODO: стратегии как отдельный класс в шаблон
   [[nodiscard]] ElemT& operator[](const size_t index) {
     if (index >= Size()) {
       throw std::out_of_range(BAD_INDEX_MSG);
