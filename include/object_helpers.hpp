@@ -30,22 +30,21 @@ inline size_t DefaultConstruct(ElemT* buffer, const size_t first, const size_t l
   return last_constructed;
 }
 
-// TODO: remove this function, it works incorrect: arg moves multiple time
-template<typename ElemT, typename ArgT>
-inline size_t Construct(ElemT* buffer, const size_t size, ArgT&& arg = ElemT()) {
+template<typename ElemT>
+inline size_t DefaultConstruct(ElemT* buffer, const size_t size) {
+  return DefaultConstruct(buffer, 0, size);
+}
+
+template<typename ElemT>
+inline size_t Construct(ElemT* buffer, const size_t size, const ElemT& value) {
   assert(buffer != nullptr);
 
   size_t last_constructed = 0;
   while (last_constructed < size) {
-    Construct(buffer + last_constructed, std::forward<ArgT>(arg));
+    Construct(buffer + last_constructed, value);
     ++last_constructed;
   }
   return last_constructed;
-}
-
-template<typename ElemT>
-inline size_t DefaultConstruct(ElemT* buffer, const size_t size) {
-  return DefaultConstruct(buffer, 0, size);
 }
 
 template<typename ElemT>

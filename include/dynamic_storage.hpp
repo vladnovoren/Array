@@ -29,11 +29,10 @@ class DynamicStorage {
     size_{DefaultConstruct(buffer_, size)} {
   }
 
-  template<typename ArgT>
-  DynamicStorage(const size_t size, ArgT&& arg) :
+  DynamicStorage(const size_t size, const ElemT& value) :
     buffer_{static_cast<ElemT*>(::operator new(size * sizeof(ElemT)))},
     capacity_{size},
-    size_{Construct(buffer_, size, arg)} {
+    size_{Construct(buffer_, size, value)} {
   }
 
   DynamicStorage(const DynamicStorage& other_copy) :

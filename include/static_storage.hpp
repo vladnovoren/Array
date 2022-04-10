@@ -21,9 +21,8 @@ class StaticStorage {
     size_{DefaultConstruct(buffer_, size)} {
   }
 
-  template<typename ArgT>
-  StaticStorage(const size_t size, ArgT&& arg = ElemT()) :
-    size_{Construct(buffer_, size, std::forward<ArgT>(arg))} {
+  StaticStorage(const size_t size, const ElemT& value) :
+    size_{Construct(buffer_, size, value)} {
   }
 
   StaticStorage(const StaticStorage& other_copy) {
@@ -43,9 +42,7 @@ class StaticStorage {
   }
 
   ~StaticStorage() {
-    for (size_t i = 0; i < size_; ++i) {
-      Destruct(buffer_ + i);
-    }
+    Destruct(buffer_, size_);
   }
 
   StaticStorage& operator=(StaticStorage& other_copy) {
