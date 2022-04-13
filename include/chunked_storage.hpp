@@ -101,7 +101,7 @@ class ChunkedStorage {
     size_ = new_size;
   }
 
-  void ReserveBack() {
+  ElemT* ReserveBack() {
     size_t chunk_num = GetChunkNum(size_ + 1);
 
     assert(chunk_num <= chunks_.Size());
@@ -109,10 +109,14 @@ class ChunkedStorage {
       chunks_.Resize(chunk_num + 1);
     }
 
-    if (!IsChunkReady(chunk_num)) {
-      MakeChunkReady(chunks_.At(chunk_num), 0);
+    ElemT*& chunk = chunks_.At(chunk_num);
+
+    if (chunk == nullptr) {
+      MakeChunkReady(chunk, 0);
     }
     ++size_;
+
+    return &chunk[(size_ - 1) % FULL_CHUNK_SIZE_];
   }
 
   void RollBackReservedBack() {

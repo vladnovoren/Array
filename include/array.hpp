@@ -4,6 +4,7 @@
 #include "error_msgs.hpp"
 #include <cstddef>
 #include <stdexcept>
+#include <initializer_list>
 #include "dynamic_storage.hpp"
 #include "static_storage.hpp"
 
@@ -15,6 +16,12 @@ template<
 class Array {
  public:
   Array() {
+  }
+
+  Array(const std::initializer_list<ElemT>& init_list) {
+    for (const ElemT& value : init_list) {
+      new (storage_.ReserveBack()) ElemT(value);
+    }
   }
 
   explicit Array(const size_t size) : storage_(size) {
@@ -146,6 +153,12 @@ class Array<bool, Storage, N> {
   Array() {
   }
 
+  Array(const std::initializer_list<bool>& init_list) {
+    for (bool value : init_list) {
+      EmplaceBack(value);
+    }
+  }
+
   Array(const size_t size) : storage_(CalcSize(size)), size_{size} {
   }
 
@@ -177,7 +190,7 @@ class Array<bool, Storage, N> {
   }
 
   [[nodiscard]] inline BoolProxy At(const size_t index) noexcept {
-    return BoolProxy(storage_.At((index >> OFFSET_)), index % BITS_CNT_);
+    return BoolProxy(storage_.At(index >> OFFSET_), index % BITS_CNT_);
   }
 
   [[nodiscard]] inline const BoolProxy At(const size_t index) const noexcept {
@@ -205,7 +218,7 @@ class Array<bool, Storage, N> {
       throw std::logic_error(BAD_FRONT_MSG);
     }
 
-    return storage_.At(0);
+    return At(0);
   }
 
   [[nodiscard]] inline const BoolProxy Front() const {
@@ -220,7 +233,7 @@ class Array<bool, Storage, N> {
     storage_.Resize(CalcSize(size_ + 1));
     size_++;
 
-    storage_.At(size_ - 1) = value;
+    At(size_ - 1) = value;
   }
 
   void PushBack(bool value) {
@@ -263,7 +276,7 @@ class Array<bool, Storage, N> {
     void SetValue(bool value) {
       byte_ &= ~(1 << bit_);
       if (value) {
-        byte_ |= (value << bit_);
+        byte_ |= (1 << bit_);
       }
     }
 

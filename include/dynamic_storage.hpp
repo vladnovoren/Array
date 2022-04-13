@@ -112,11 +112,12 @@ class DynamicStorage {
     size_ = new_size;
   }
 
-  void ReserveBack() {
+  ElemT* ReserveBack() {
     if (size_ == capacity_) {
       DoubleBuffer();
     }
     ++size_;
+    return &buffer_[size_ - 1];
   }
 
   void RollBackReservedBack() {

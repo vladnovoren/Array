@@ -107,11 +107,12 @@ class StaticStorage {
     }
   }
 
-  void ReserveBack() {
+  ElemT* ReserveBack() {
     if (size_ == MaxSize) {
       throw std::logic_error(BAD_PUSH_BACK);
     }
     ++size_;
+    return &buffer_[size_ - 1];
   }
 
   void RollBackReservedBack() {
