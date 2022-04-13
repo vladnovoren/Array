@@ -5,7 +5,7 @@
 #include <cassert>
 
 template<typename ElemT, typename... ArgsT>
-inline void Construct(ElemT* elem, ArgsT&&... args) {
+inline void ConstructOne(ElemT* elem, ArgsT&&... args) {
   assert(elem != nullptr);
 
   new (elem) ElemT(std::forward<ArgsT>(args)...);
@@ -41,7 +41,7 @@ inline size_t Construct(ElemT* buffer, const size_t size, const ElemT& value) {
 
   size_t last_constructed = 0;
   while (last_constructed < size) {
-    Construct(buffer + last_constructed, value);
+    ConstructOne(buffer + last_constructed, value);
     ++last_constructed;
   }
   return last_constructed;
@@ -82,7 +82,7 @@ ElemT* SafeCopy(ElemT* src, const size_t dst_size, const size_t src_size) {
   size_t constructed = 0;
   try {
     for (size_t i = 0; i < src_size; ++i) {
-      Construct(dst + i, src[i]);
+      ConstructOne(dst + i, src[i]);
       ++constructed;
     }
   } catch (...) {
@@ -101,7 +101,7 @@ ElemT* SafeMove(ElemT* src, const size_t dst_size, const size_t src_size) {
   size_t constructed = 0;
   try {
     for (size_t i = 0; i < src_size; ++i) {
-      Construct(dst + i, std::move_if_noexcept(src[i]));
+      ConstructOne(dst + i, std::move_if_noexcept(src[i]));
       ++constructed;
     }
   } catch (...) {

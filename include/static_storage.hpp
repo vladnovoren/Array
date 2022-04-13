@@ -101,7 +101,7 @@ class StaticStorage {
       Destruct(buffer_, size_, new_size);
     } else {
       while (size_ < new_size) {
-        Construct(buffer_, size_);
+        DefaultConstruct(buffer_, size_);
         ++size_;
       }
     }

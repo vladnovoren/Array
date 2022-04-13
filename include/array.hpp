@@ -106,7 +106,7 @@ class Array {
   void EmplaceBack(ArgsT&&... args) {
     storage_.ReserveBack();
     try {
-      Construct(&storage_.At(storage_.Size() - 1), std::forward<ArgsT>(args)...);
+      ConstructOne(&storage_.At(storage_.Size() - 1), std::forward<ArgsT>(args)...);
     } catch (...) {
       storage_.RollBackReservedBack();
       throw;
