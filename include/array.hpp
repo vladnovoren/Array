@@ -7,6 +7,13 @@
 #include <initializer_list>
 #include "dynamic_storage.hpp"
 #include "static_storage.hpp"
+#include "chunked_storage.hpp"
+
+template<typename Array, typename ElemT>
+class ArrayIterator;
+
+template<typename Array, typename ElemT>
+class ArrayConstIterator;
 
 template<
   typename ElemT,
