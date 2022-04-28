@@ -22,6 +22,12 @@ template<
 >
 class Array {
  public:
+  using value_type = ElemT;
+  using pointer = ElemT*;
+  using reference = ElemT&;
+  using difference_type = std::ptrdiff_t;
+
+ public:
   Array() {
   }
 
