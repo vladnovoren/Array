@@ -63,6 +63,10 @@ class BaseArrayIterator {
   BaseArrayIterator& operator=(const BaseArrayIterator<OtherArray, OtherElemT>& other_copy) {
     ValidRhs(other_copy);
 
+    if ((void*)this == (void*)&other_copy) {
+      return *this;
+    }
+
     BaseArrayIterator tmp(other_copy);
     std::swap(*this, tmp);
     return *this;
@@ -71,6 +75,10 @@ class BaseArrayIterator {
   template<typename OtherArray, typename OtherElemT>
   BaseArrayIterator& operator=(BaseArrayIterator<OtherArray, OtherElemT>&& other_move) {
     ValidRhs(other_move);
+
+    if ((void*)this == (void*)&other_move) {
+      return *this;
+    }
 
     std::swap(this->array_, other_move.array_);
     std::swap(this->index_, other_move.index_);
@@ -100,14 +108,19 @@ class BaseArrayIterator {
 
   BaseArrayIterator operator++(int) {
     BaseArrayIterator old(*this);
-    this->operator++;
+    this->operator++();
     return old;
   }
 
   BaseArrayIterator operator--(int) {
     BaseArrayIterator old(*this);
-    this->operator--;
+    this->operator--();
     return old;
+  }
+
+  reference operator[](const size_t offset) {
+    CheckOverflow(index_ + offset);
+    return array_->At(index_ + offset);
   }
 
   template<typename OtherArray, typename OtherElemT>
@@ -130,39 +143,38 @@ class BaseArrayIterator {
   }
 
   template<typename OtherArray, typename OtherElemT>
-  bool operator==(const BaseArrayIterator<OtherArray, OtherElemT>& rhs) {
+  bool operator==(const BaseArrayIterator<OtherArray, OtherElemT>& rhs) const {
     CheckSameArrays(rhs);
 
     return index_ == rhs.index_;
   }
 
   template<typename OtherArray, typename OtherElemT>
-  bool operator!=(const BaseArrayIterator<OtherArray, OtherElemT>& rhs) {
+  bool operator!=(const BaseArrayIterator<OtherArray, OtherElemT>& rhs) const {
     return !(*this == rhs);
   }
 
   template<typename OtherArray, typename OtherElemT>
-  bool operator<(const BaseArrayIterator<OtherArray, OtherElemT>& rhs) {
+  bool operator<(const BaseArrayIterator<OtherArray, OtherElemT>& rhs) const {
     CheckSameArrays(rhs);
 
     return index_ < rhs.index_;
   }
 
   template<typename OtherArray, typename OtherElemT>
-  bool operator>(const BaseArrayIterator<OtherArray, OtherElemT>& rhs) {
+  bool operator>(const BaseArrayIterator<OtherArray, OtherElemT>& rhs) const {
     return rhs < *this;
   }
 
   template<typename OtherArray, typename OtherElemT>
-  bool operator<=(const BaseArrayIterator<OtherArray, OtherElemT>& rhs) {
+  bool operator<=(const BaseArrayIterator<OtherArray, OtherElemT>& rhs) const {
     return !(*this > rhs);
   }
 
   template<typename OtherArray, typename OtherElemT>
-  bool operator>=(const BaseArrayIterator<OtherArray, OtherElemT>& rhs) {
+  bool operator>=(const BaseArrayIterator<OtherArray, OtherElemT>& rhs) const {
     return !(*this < rhs);
   }
-
 
  private:
   static constexpr const char* const OUT_OF_RANGE_MSG_     = "iterator is out of range";
@@ -171,7 +183,7 @@ class BaseArrayIterator {
 
  private:
   void CheckValid(const size_t index) const {
-    if (index == -1 || index <= array_->Size()) {
+    if (index != -1ULL && index > array_->Size()) {
       throw std::logic_error(INVALID_ITERATOR_MSG_);
     }
   }
@@ -240,8 +252,7 @@ class Array {
   explicit Array(const size_t size) : storage_(size) {
   }
 
-  template<typename ArgT>
-  Array(const size_t size, ArgT&& arg) : storage_(size, std::forward<ArgT>(arg)) {
+  Array(const size_t size, const ElemT& value) : storage_(size, value) {
   }
 
   Array(const Array& other_copy) = default;
@@ -274,9 +285,18 @@ class Array {
     return ArrayIterator<Array>(this, 0);
   }
 
-  ConstArrayIterator<Array> begin() const {
+  ArrayIterator<Array> end() {
+    return ArrayIterator<Array>(this, Size());
+  }
+
+  ConstArrayIterator<Array> cbegin() const {
     return ConstArrayIterator<Array>(this, 0);
   }
+
+  ConstArrayIterator<Array> cend() const {
+    return ConstArrayIterator<Array>(this, Size());
+  }
+
 
   [[nodiscard]] inline ElemT& At(const size_t index) noexcept {
     return storage_.At(index);

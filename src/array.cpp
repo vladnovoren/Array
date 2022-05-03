@@ -113,11 +113,17 @@ void TestIterators() {
   auto v_it = v_arr.begin();
 
   const Array<int> c_arr = {1, 2, 3, 4, 5};
-  auto c_it = c_arr.begin();
+  auto c_it = c_arr.cend();
+  c_it--;
+  --c_it;
 
   std::cout << *v_it << ' ' << *c_it << '\n';
 
   c_it = v_it;
+  v_it += 2;
+
+  std::cout << v_it[2] << '\n';
+
 }
 
 int main() {
