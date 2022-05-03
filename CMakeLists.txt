@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.16.3)
 
-set(CMAKE_C_COMPILER clang)
-set(CMAKE_CXX_COMPILER clang++)
+set(CMAKE_C_COMPILER clang-12)
+set(CMAKE_CXX_COMPILER clang++-12)
 set(CMAKE_CXX_STANDARD 20)
 
-project(Array)
+project(Vector)
 
 add_compile_options(
   -Wall
@@ -23,10 +23,5 @@ add_link_options(
   -fsanitize=address
 )
 
-add_executable(array src/array.cpp)
-add_executable(dynamic_storage src/dynamic_storage.cpp)
-add_executable(static_storage src/static_storage.cpp)
-
-target_include_directories(array PUBLIC include/)
-target_include_directories(dynamic_storage PUBLIC include/)
-target_include_directories(static_storage PUBLIC include/)
+add_executable(vector src/vector.cpp)
+target_include_directories(vector PUBLIC include/)

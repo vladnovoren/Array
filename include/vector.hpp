@@ -1,5 +1,5 @@
-#ifndef ARRAY_HPP
-#define ARRAY_HPP
+#ifndef VECTOR_HPP
+#define VECTOR_HPP
 
 #include <cstddef>
 #include <stdexcept>
@@ -16,77 +16,77 @@ template<
   template<typename StorageT, size_t StorageSize> class Storage,
   size_t N
 >
-class Array;
+class Vector;
 
-template<typename Array, typename ElemT>
-class BaseArrayIterator {
+template<typename Vector, typename ElemT>
+class BaseVectorIterator {
  public:
-  static constexpr const bool is_const = std::is_same_v<const typename Array::value_type, ElemT>;
+  static constexpr const bool is_const = std::is_same_v<const typename Vector::value_type, ElemT>;
 
   friend typename std::conditional_t<is_const,
-    BaseArrayIterator<std::remove_const_t<Array>, std::remove_const_t<ElemT>>,
-    BaseArrayIterator<const Array, const ElemT>
+    BaseVectorIterator<std::remove_const_t<Vector>, std::remove_const_t<ElemT>>,
+    BaseVectorIterator<const Vector, const ElemT>
   >;
 
  public:
   using iterator_category = std::random_access_iterator_tag;
 
-  using value_type      = typename Array::value_type;
+  using value_type      = typename Vector::value_type;
   using pointer         = std::conditional_t<is_const,
-                                             typename Array::const_pointer,
-                                             typename Array::pointer>;
+                                             typename Vector::const_pointer,
+                                             typename Vector::pointer>;
   using reference       = std::conditional_t<is_const,
-                                             typename Array::const_reference,
-                                             typename Array::reference>;
+                                             typename Vector::const_reference,
+                                             typename Vector::reference>;
   using difference_type = std::ptrdiff_t;
 
  public:
-  BaseArrayIterator(Array* array, const size_t index) :
-    array_{array}, index_{index} {
+  BaseVectorIterator(Vector* vector, const size_t index) :
+    vector_{vector}, index_{index} {
   }
 
-  template<typename OtherArray, typename OtherElemT>
-  BaseArrayIterator(const BaseArrayIterator<OtherArray, OtherElemT>& other_copy) :
-    array_{other_copy.array_}, index_{other_copy.index_} {
+  template<typename OtherVector, typename OtherElemT>
+  BaseVectorIterator(const BaseVectorIterator<OtherVector, OtherElemT>& other_copy) :
+    vector_{other_copy.vector_}, index_{other_copy.index_} {
     ValidRhs(other_copy);
   }
 
-  template<typename OtherArray, typename OtherElemT>
-  BaseArrayIterator(BaseArrayIterator<OtherArray, OtherElemT>&& other_move) {
+  template<typename OtherVector, typename OtherElemT>
+  BaseVectorIterator(BaseVectorIterator<OtherVector, OtherElemT>&& other_move) {
     ValidRhs(other_move);
 
-    std::swap(this->array_, other_move.array_);
+    std::swap(this->vector_, other_move.vector_);
     std::swap(this->index_, other_move.index_);
   }
 
-  template<typename OtherArray, typename OtherElemT>
-  BaseArrayIterator& operator=(const BaseArrayIterator<OtherArray, OtherElemT>& other_copy) {
+  template<typename OtherVector, typename OtherElemT>
+  BaseVectorIterator& operator=(const BaseVectorIterator<OtherVector, OtherElemT>& other_copy) {
     ValidRhs(other_copy);
 
     if ((void*)this == (void*)&other_copy) {
       return *this;
     }
 
-    BaseArrayIterator tmp(other_copy);
+    BaseVectorIterator tmp(other_copy);
     std::swap(*this, tmp);
     return *this;
   }
 
-  template<typename OtherArray, typename OtherElemT>
-  BaseArrayIterator& operator=(BaseArrayIterator<OtherArray, OtherElemT>&& other_move) {
+  template<typename OtherVector, typename OtherElemT>
+  BaseVectorIterator& operator=(BaseVectorIterator<OtherVector, OtherElemT>&& other_move) {
     ValidRhs(other_move);
 
     if ((void*)this == (void*)&other_move) {
       return *this;
     }
 
-    std::swap(this->array_, other_move.array_);
+    std::swap(this->vector_, other_move.vector_);
     std::swap(this->index_, other_move.index_);
     return *this;
   }
 
-  BaseArrayIterator& operator+=(const difference_type diff) {
-    assert(array_ != nullptr);
+  BaseVectorIterator& operator+=(const difference_type diff) {
+    assert(vector_ != nullptr);
 
     CheckValid(index_ + diff);
 
@@ -94,38 +94,38 @@ class BaseArrayIterator {
     return *this;
   }
 
-  BaseArrayIterator& operator-=(const difference_type diff) {
+  BaseVectorIterator& operator-=(const difference_type diff) {
     return this->operator+=(-diff);
   }
 
-  BaseArrayIterator& operator++() {
+  BaseVectorIterator& operator++() {
     return this->operator+=(1);
   }
 
-  BaseArrayIterator& operator--() {
+  BaseVectorIterator& operator--() {
     return this->operator-=(1);
   }
 
-  BaseArrayIterator operator++(int) {
-    BaseArrayIterator old(*this);
+  BaseVectorIterator operator++(int) {
+    BaseVectorIterator old(*this);
     this->operator++();
     return old;
   }
 
-  BaseArrayIterator operator--(int) {
-    BaseArrayIterator old(*this);
+  BaseVectorIterator operator--(int) {
+    BaseVectorIterator old(*this);
     this->operator--();
     return old;
   }
 
   reference operator[](const size_t offset) {
     CheckOverflow(index_ + offset);
-    return array_->At(index_ + offset);
+    return vector_->At(index_ + offset);
   }
 
-  template<typename OtherArray, typename OtherElemT>
-  difference_type operator-(const BaseArrayIterator<OtherArray, OtherElemT>& rhs) {
-    CheckSameArrays(rhs);
+  template<typename OtherVector, typename OtherElemT>
+  difference_type operator-(const BaseVectorIterator<OtherVector, OtherElemT>& rhs) {
+    CheckSameVectors(rhs);
 
     return index_ - rhs.index_;
   }
@@ -133,75 +133,75 @@ class BaseArrayIterator {
   reference operator*() const {
     CheckOverflow(index_);
 
-    return array_->At(index_);
+    return vector_->At(index_);
   }
 
   pointer operator->() const {
     CheckOverflow(index_);
 
-    return &array_->At(index_);
+    return &vector_->At(index_);
   }
 
-  template<typename OtherArray, typename OtherElemT>
-  bool operator==(const BaseArrayIterator<OtherArray, OtherElemT>& rhs) const {
-    CheckSameArrays(rhs);
+  template<typename OtherVector, typename OtherElemT>
+  bool operator==(const BaseVectorIterator<OtherVector, OtherElemT>& rhs) const {
+    CheckSameVectors(rhs);
 
     return index_ == rhs.index_;
   }
 
-  template<typename OtherArray, typename OtherElemT>
-  bool operator!=(const BaseArrayIterator<OtherArray, OtherElemT>& rhs) const {
+  template<typename OtherVector, typename OtherElemT>
+  bool operator!=(const BaseVectorIterator<OtherVector, OtherElemT>& rhs) const {
     return !(*this == rhs);
   }
 
-  template<typename OtherArray, typename OtherElemT>
-  bool operator<(const BaseArrayIterator<OtherArray, OtherElemT>& rhs) const {
-    CheckSameArrays(rhs);
+  template<typename OtherVector, typename OtherElemT>
+  bool operator<(const BaseVectorIterator<OtherVector, OtherElemT>& rhs) const {
+    CheckSameVectors(rhs);
 
     return index_ < rhs.index_;
   }
 
-  template<typename OtherArray, typename OtherElemT>
-  bool operator>(const BaseArrayIterator<OtherArray, OtherElemT>& rhs) const {
+  template<typename OtherVector, typename OtherElemT>
+  bool operator>(const BaseVectorIterator<OtherVector, OtherElemT>& rhs) const {
     return rhs < *this;
   }
 
-  template<typename OtherArray, typename OtherElemT>
-  bool operator<=(const BaseArrayIterator<OtherArray, OtherElemT>& rhs) const {
+  template<typename OtherVector, typename OtherElemT>
+  bool operator<=(const BaseVectorIterator<OtherVector, OtherElemT>& rhs) const {
     return !(*this > rhs);
   }
 
-  template<typename OtherArray, typename OtherElemT>
-  bool operator>=(const BaseArrayIterator<OtherArray, OtherElemT>& rhs) const {
+  template<typename OtherVector, typename OtherElemT>
+  bool operator>=(const BaseVectorIterator<OtherVector, OtherElemT>& rhs) const {
     return !(*this < rhs);
   }
 
  private:
   static constexpr const char* const OUT_OF_RANGE_MSG_     = "iterator is out of range";
   static constexpr const char* const INVALID_ITERATOR_MSG_ = "iterator is invalid";
-  static constexpr const char* const DIFFERENT_ARRAYS_MSG_ = "iterators of different arrays";
+  static constexpr const char* const DIFFERENT_VECTORS_MSG_ = "iterators of different vectors";
 
  private:
   void CheckValid(const size_t index) const {
-    if (index != -1ULL && index > array_->Size()) {
+    if (index != -1ULL && index > vector_->Size()) {
       throw std::logic_error(INVALID_ITERATOR_MSG_);
     }
   }
 
   void CheckOverflow(const size_t index) const {
-    if (index >= array_->Size()) {
+    if (index >= vector_->Size()) {
       throw std::out_of_range(OUT_OF_RANGE_MSG_);
     }
   }
 
-  void CheckSameArrays(const BaseArrayIterator& other) const {
-    if (array_ != other.array_) {
-      throw std::logic_error(DIFFERENT_ARRAYS_MSG_);
+  void CheckSameVectors(const BaseVectorIterator& other) const {
+    if (vector_ != other.vector_) {
+      throw std::logic_error(DIFFERENT_VECTORS_MSG_);
     }
   }
 
  private:
-  Array* array_{nullptr};
+  Vector* vector_{nullptr};
   size_t index_{0};
 
  private:
@@ -213,21 +213,21 @@ class BaseArrayIterator {
 
 };
 
-template<typename Array, typename ElemT>
-class BaseArrayIterator;
+template<typename Vector, typename ElemT>
+class BaseVectorIterator;
 
-template<typename Array>
-using ArrayIterator = BaseArrayIterator<Array, typename Array::value_type>;
+template<typename Vector>
+using VectorIterator = BaseVectorIterator<Vector, typename Vector::value_type>;
 
-template<typename Array>
-using ConstArrayIterator = BaseArrayIterator<const Array, const typename Array::value_type>;
+template<typename Vector>
+using ConstVectorIterator = BaseVectorIterator<const Vector, const typename Vector::value_type>;
 
 template<
   typename ElemT,
   template<typename StorageT, size_t StorageSize> class Storage = DynamicStorage,
   size_t N = 0
 >
-class Array {
+class Vector {
  public:
   using value_type = ElemT;
 
@@ -240,39 +240,39 @@ class Array {
   using difference_type = std::ptrdiff_t;
 
  public:
-  Array() {
+  Vector() {
   }
 
-  Array(const std::initializer_list<ElemT>& init_list) {
+  Vector(const std::initializer_list<ElemT>& init_list) {
     for (const ElemT& value : init_list) {
       new (storage_.ReserveBack()) ElemT(value);
     }
   }
 
-  explicit Array(const size_t size) : storage_(size) {
+  explicit Vector(const size_t size) : storage_(size) {
   }
 
-  Array(const size_t size, const ElemT& value) : storage_(size, value) {
+  Vector(const size_t size, const ElemT& value) : storage_(size, value) {
   }
 
-  Array(const Array& other_copy) = default;
+  Vector(const Vector& other_copy) = default;
 
-  Array(Array&& other_move) = default;
+  Vector(Vector&& other_move) = default;
 
-  ~Array() {
+  ~Vector() {
   }
 
-  Array& operator=(const Array& other_copy) {
+  Vector& operator=(const Vector& other_copy) {
     if (this == &other_copy) {
       return *this;
     }
 
-    Array tmp(other_copy);
+    Vector tmp(other_copy);
     std::swap(*this, tmp);
     return *this;
   }
 
-  Array& operator=(Array&& other_move) {
+  Vector& operator=(Vector&& other_move) {
     if (this == &other_move) {
       return *this;
     }
@@ -281,20 +281,20 @@ class Array {
     return *this;
   }
 
-  ArrayIterator<Array> begin() {
-    return ArrayIterator<Array>(this, 0);
+  VectorIterator<Vector> begin() {
+    return VectorIterator<Vector>(this, 0);
   }
 
-  ArrayIterator<Array> end() {
-    return ArrayIterator<Array>(this, Size());
+  VectorIterator<Vector> end() {
+    return VectorIterator<Vector>(this, Size());
   }
 
-  ConstArrayIterator<Array> cbegin() const {
-    return ConstArrayIterator<Array>(this, 0);
+  ConstVectorIterator<Vector> cbegin() const {
+    return ConstVectorIterator<Vector>(this, 0);
   }
 
-  ConstArrayIterator<Array> cend() const {
-    return ConstArrayIterator<Array>(this, Size());
+  ConstVectorIterator<Vector> cend() const {
+    return ConstVectorIterator<Vector>(this, Size());
   }
 
 
@@ -315,7 +315,7 @@ class Array {
   }
 
   [[nodiscard]] const ElemT& operator[](const size_t index) const {
-    return const_cast<Array*>(this)->operator[](index);
+    return const_cast<Vector*>(this)->operator[](index);
   }
 
   [[nodiscard]] inline size_t Size() const noexcept {
@@ -331,7 +331,7 @@ class Array {
   }
 
   [[nodiscard]] inline const ElemT& Front() const {
-    return const_cast<Array*>(this)->Front();
+    return const_cast<Vector*>(this)->Front();
   }
 
   [[nodiscard]] inline ElemT& Back() {
@@ -343,7 +343,7 @@ class Array {
   }
 
   [[nodiscard]] inline const ElemT& Back() const {
-    return const_cast<Array*>(this)->Back();
+    return const_cast<Vector*>(this)->Back();
   }
 
   void Resize(const size_t new_size) {
@@ -387,45 +387,45 @@ template<
   template<typename StorageT, size_t StorageSize> class Storage,
   size_t N
 >
-class Array<bool, Storage, N> {
+class Vector<bool, Storage, N> {
   class BoolProxy;
 
  public:
-  Array() {
+  Vector() {
   }
 
-  Array(const std::initializer_list<bool>& init_list) {
+  Vector(const std::initializer_list<bool>& init_list) {
     for (bool value : init_list) {
       EmplaceBack(value);
     }
   }
 
-  Array(const size_t size) : storage_(CalcSize(size)), size_{size} {
+  Vector(const size_t size) : storage_(CalcSize(size)), size_{size} {
   }
 
-  Array(const Array& other_copy) = default;
+  Vector(const Vector& other_copy) = default;
 
-  Array(Array&& other_move) = default;
+  Vector(Vector&& other_move) = default;
 
-  ~Array() {
+  ~Vector() {
   }
 
-  Array& operator=(const Array& other_copy) {
+  Vector& operator=(const Vector& other_copy) {
     if (this == &other_copy) {
       return *this;
     }
 
-    Array tmp(other_copy);
+    Vector tmp(other_copy);
     std::swap(*this, tmp);
     return *this;
   }
 
-  Array& operator=(Array&& other_move) {
+  Vector& operator=(Vector&& other_move) {
     if (this == &other_move) {
       return *this;
     }
 
-    Array tmp(std::move(other_move));
+    Vector tmp(std::move(other_move));
     SwapFields(other_move);
     return *this;
   }
@@ -435,7 +435,7 @@ class Array<bool, Storage, N> {
   }
 
   [[nodiscard]] inline const BoolProxy At(const size_t index) const noexcept {
-    return const_cast<Array*>(this)->At(index);
+    return const_cast<Vector*>(this)->At(index);
   }
 
   [[nodiscard]] inline BoolProxy operator[](const size_t index) {
@@ -447,7 +447,7 @@ class Array<bool, Storage, N> {
   }
 
   [[nodiscard]] inline const BoolProxy operator[](const size_t index) const {
-    return const_cast<Array*>(this)->operator[](index);
+    return const_cast<Vector*>(this)->operator[](index);
   }
 
   [[nodiscard]] inline size_t Size() const noexcept {
@@ -463,7 +463,7 @@ class Array<bool, Storage, N> {
   }
 
   [[nodiscard]] inline const BoolProxy Front() const {
-    return const_cast<Array*>(this)->Front();
+    return const_cast<Vector*>(this)->Front();
   }
 
   void Resize(const size_t new_size) {
@@ -494,7 +494,7 @@ class Array<bool, Storage, N> {
   }
 
  private:
-  void SwapFields(Array& other) {
+  void SwapFields(Vector& other) {
     std::swap(storage_, other.storage_);
     std::swap(size_, other.size_);
   }
@@ -550,4 +550,4 @@ class Array<bool, Storage, N> {
 
 };
 
-#endif /* array.hpp */
+#endif /* vector.hpp */
