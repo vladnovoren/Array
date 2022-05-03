@@ -1,19 +1,214 @@
 #ifndef ARRAY_HPP
 #define ARRAY_HPP
 
-#include "error_msgs.hpp"
 #include <cstddef>
 #include <stdexcept>
+#include <iterator>
 #include <initializer_list>
+
+#include "error_msgs.hpp"
 #include "dynamic_storage.hpp"
 #include "static_storage.hpp"
 #include "chunked_storage.hpp"
 
-template<typename Array, typename ElemT>
-class ArrayIterator;
+template<
+  typename ElemT,
+  template<typename StorageT, size_t StorageSize> class Storage,
+  size_t N
+>
+class Array;
 
 template<typename Array, typename ElemT>
-class ArrayConstIterator;
+class BaseArrayIterator {
+ public:
+  static constexpr const bool is_const = std::is_same_v<const typename Array::value_type, ElemT>;
+
+  friend typename std::conditional_t<is_const,
+    BaseArrayIterator<std::remove_const_t<Array>, std::remove_const_t<ElemT>>,
+    BaseArrayIterator<const Array, const ElemT>
+  >;
+
+ public:
+  using iterator_category = std::random_access_iterator_tag;
+
+  using value_type      = typename Array::value_type;
+  using pointer         = std::conditional_t<is_const,
+                                             typename Array::const_pointer,
+                                             typename Array::pointer>;
+  using reference       = std::conditional_t<is_const,
+                                             typename Array::const_reference,
+                                             typename Array::reference>;
+  using difference_type = std::ptrdiff_t;
+
+ public:
+  BaseArrayIterator(Array* array, const size_t index) :
+    array_{array}, index_{index} {
+  }
+
+  template<typename OtherArray, typename OtherElemT>
+  BaseArrayIterator(const BaseArrayIterator<OtherArray, OtherElemT>& other_copy) :
+    array_{other_copy.array_}, index_{other_copy.index_} {
+    ValidRhs(other_copy);
+  }
+
+  template<typename OtherArray, typename OtherElemT>
+  BaseArrayIterator(BaseArrayIterator<OtherArray, OtherElemT>&& other_move) {
+    ValidRhs(other_move);
+
+    std::swap(this->array_, other_move.array_);
+    std::swap(this->index_, other_move.index_);
+  }
+
+  template<typename OtherArray, typename OtherElemT>
+  BaseArrayIterator& operator=(const BaseArrayIterator<OtherArray, OtherElemT>& other_copy) {
+    ValidRhs(other_copy);
+
+    BaseArrayIterator tmp(other_copy);
+    std::swap(*this, tmp);
+    return *this;
+  }
+
+  template<typename OtherArray, typename OtherElemT>
+  BaseArrayIterator& operator=(BaseArrayIterator<OtherArray, OtherElemT>&& other_move) {
+    ValidRhs(other_move);
+
+    std::swap(this->array_, other_move.array_);
+    std::swap(this->index_, other_move.index_);
+    return *this;
+  }
+
+  BaseArrayIterator& operator+=(const difference_type diff) {
+    assert(array_ != nullptr);
+
+    CheckValid(index_ + diff);
+
+    index_ += diff;
+    return *this;
+  }
+
+  BaseArrayIterator& operator-=(const difference_type diff) {
+    return this->operator+=(-diff);
+  }
+
+  BaseArrayIterator& operator++() {
+    return this->operator+=(1);
+  }
+
+  BaseArrayIterator& operator--() {
+    return this->operator-=(1);
+  }
+
+  BaseArrayIterator operator++(int) {
+    BaseArrayIterator old(*this);
+    this->operator++;
+    return old;
+  }
+
+  BaseArrayIterator operator--(int) {
+    BaseArrayIterator old(*this);
+    this->operator--;
+    return old;
+  }
+
+  template<typename OtherArray, typename OtherElemT>
+  difference_type operator-(const BaseArrayIterator<OtherArray, OtherElemT>& rhs) {
+    CheckSameArrays(rhs);
+
+    return index_ - rhs.index_;
+  }
+
+  reference operator*() const {
+    CheckOverflow(index_);
+
+    return array_->At(index_);
+  }
+
+  pointer operator->() const {
+    CheckOverflow(index_);
+
+    return &array_->At(index_);
+  }
+
+  template<typename OtherArray, typename OtherElemT>
+  bool operator==(const BaseArrayIterator<OtherArray, OtherElemT>& rhs) {
+    CheckSameArrays(rhs);
+
+    return index_ == rhs.index_;
+  }
+
+  template<typename OtherArray, typename OtherElemT>
+  bool operator!=(const BaseArrayIterator<OtherArray, OtherElemT>& rhs) {
+    return !(*this == rhs);
+  }
+
+  template<typename OtherArray, typename OtherElemT>
+  bool operator<(const BaseArrayIterator<OtherArray, OtherElemT>& rhs) {
+    CheckSameArrays(rhs);
+
+    return index_ < rhs.index_;
+  }
+
+  template<typename OtherArray, typename OtherElemT>
+  bool operator>(const BaseArrayIterator<OtherArray, OtherElemT>& rhs) {
+    return rhs < *this;
+  }
+
+  template<typename OtherArray, typename OtherElemT>
+  bool operator<=(const BaseArrayIterator<OtherArray, OtherElemT>& rhs) {
+    return !(*this > rhs);
+  }
+
+  template<typename OtherArray, typename OtherElemT>
+  bool operator>=(const BaseArrayIterator<OtherArray, OtherElemT>& rhs) {
+    return !(*this < rhs);
+  }
+
+
+ private:
+  static constexpr const char* const OUT_OF_RANGE_MSG_     = "iterator is out of range";
+  static constexpr const char* const INVALID_ITERATOR_MSG_ = "iterator is invalid";
+  static constexpr const char* const DIFFERENT_ARRAYS_MSG_ = "iterators of different arrays";
+
+ private:
+  void CheckValid(const size_t index) const {
+    if (index == -1 || index <= array_->Size()) {
+      throw std::logic_error(INVALID_ITERATOR_MSG_);
+    }
+  }
+
+  void CheckOverflow(const size_t index) const {
+    if (index >= array_->Size()) {
+      throw std::out_of_range(OUT_OF_RANGE_MSG_);
+    }
+  }
+
+  void CheckSameArrays(const BaseArrayIterator& other) const {
+    if (array_ != other.array_) {
+      throw std::logic_error(DIFFERENT_ARRAYS_MSG_);
+    }
+  }
+
+ private:
+  Array* array_{nullptr};
+  size_t index_{0};
+
+ private:
+  template<typename OtherIterator>
+  static constexpr void ValidRhs(const OtherIterator&) {
+    static_assert(is_const == OtherIterator::is_const ||
+                  (is_const && !OtherIterator::is_const));
+  }
+
+};
+
+template<typename Array, typename ElemT>
+class BaseArrayIterator;
+
+template<typename Array>
+using ArrayIterator = BaseArrayIterator<Array, typename Array::value_type>;
+
+template<typename Array>
+using ConstArrayIterator = BaseArrayIterator<const Array, const typename Array::value_type>;
 
 template<
   typename ElemT,
@@ -23,8 +218,13 @@ template<
 class Array {
  public:
   using value_type = ElemT;
+
   using pointer = ElemT*;
+  using const_pointer = const ElemT*;
+
   using reference = ElemT&;
+  using const_reference = const ElemT&;
+
   using difference_type = std::ptrdiff_t;
 
  public:
@@ -68,6 +268,14 @@ class Array {
 
     std::swap(storage_, other_move.storage_);
     return *this;
+  }
+
+  ArrayIterator<Array> begin() {
+    return ArrayIterator<Array>(this, 0);
+  }
+
+  ConstArrayIterator<Array> begin() const {
+    return ConstArrayIterator<Array>(this, 0);
   }
 
   [[nodiscard]] inline ElemT& At(const size_t index) noexcept {

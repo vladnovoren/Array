@@ -108,10 +108,26 @@ void TestChunkedStorage() {
   }
 }
 
+void TestIterators() {
+  Array<int> v_arr = {1, 2, 3, 4, 5};
+  auto v_it = v_arr.begin();
+
+  const Array<int> c_arr = {1, 2, 3, 4, 5};
+  auto c_it = c_arr.begin();
+
+  std::cout << *v_it << ' ' << *c_it << '\n';
+
+  c_it = v_it;
+}
+
 int main() {
   srand(time(NULL));
+
   CommonTest();
   BoolTest();
   TestChunkedStorage();
+
+  TestIterators();
+
   return 0;
 }
