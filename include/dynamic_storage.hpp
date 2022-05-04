@@ -14,23 +14,24 @@
 
 template<
   typename ElemT,
+  template<typename T_> class Allocator,
   size_t N = 0
 >
 class DynamicStorage {
  public:
   DynamicStorage() :
-    buffer_{static_cast<ElemT*>(::operator new(DEFAULT_CAPACITY * sizeof(ElemT)))},
+    buffer_{static_cast<ElemT*>(allocator_.allocate(DEFAULT_CAPACITY))},
     capacity_{DEFAULT_CAPACITY} {
   }
 
   DynamicStorage(const size_t size) : 
-    buffer_{static_cast<ElemT*>(::operator new(size * sizeof(ElemT)))},
+    buffer_{static_cast<ElemT*>(allocator_.allocate(size))},
     capacity_{size},
     size_{DefaultConstruct(buffer_, size)} {
   }
 
   DynamicStorage(const size_t size, const ElemT& value) :
-    buffer_{static_cast<ElemT*>(::operator new(size * sizeof(ElemT)))},
+    buffer_{static_cast<ElemT*>(allocater_.allocate(size))},
     capacity_{size},
     size_{Construct(buffer_, size, value)} {
   }
@@ -49,7 +50,7 @@ class DynamicStorage {
       DestructAndDelete(buffer_, size_);
     }
 
-    size_ = 0;
+    size_ = 0;allocator
     capacity_ = 0;
   }
 
@@ -95,7 +96,7 @@ class DynamicStorage {
 
     if (new_size <= capacity_) {
       if (new_size < size_) {
-        Destruct(buffer_, new_size, size_);
+        Destruct(buffer_, newallocator_size, size_);
       } else {
         while (size_ < new_size) {
           DefaultConstruct(buffer_ + size_);
@@ -183,6 +184,8 @@ class DynamicStorage {
 
   size_t capacity_{0};
   size_t size_{0};
+
+  Allocator<ElemT> allocator_;
 
 };
 

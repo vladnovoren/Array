@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <ctime>
+#include <algorithm>
 
 struct Point {
   Point() {}
@@ -125,6 +126,47 @@ void TestIterators() {
 
 }
 
+void TestRange() {
+  Vector<int> vec = {1, 2, 3, 4, 5};
+
+  for (auto it = vec.begin(); it != vec.end(); ++it) {
+    std::cout << *it << ' ';
+  }
+  std::cout << '\n';
+
+  for (auto& x : vec) {
+    x = 10;
+    std::cout << x << ' ';
+  }
+  std::cout << '\n';
+
+  auto found = std::find(vec.begin(), vec.end(), 10);
+  std::cout << "found: " << *found << '\n';
+
+  for (auto& x : vec) {
+    x = rand();
+  }
+  std::sort(vec.begin(), vec.end());
+
+  std::cout << "sorted: ";
+  for (const auto& x : vec) {
+    std::cout << x << ' ';
+  }
+  std::cout << '\n';
+
+}
+
+void TestBoolIterators() {
+  Vector<bool> vec = {true, false, false, true, true, false};
+
+  std::sort(vec.begin(), vec.end());
+
+  for (auto x : vec) {
+    std::cout << std::boolalpha << x << ' ';
+  }
+  std::cout << '\n';
+}
+
 int main() {
   srand(time(NULL));
 
@@ -133,6 +175,9 @@ int main() {
   TestChunkedStorage();
 
   TestIterators();
+  TestRange();
+
+  TestBoolIterators();
 
   return 0;
 }

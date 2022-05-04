@@ -11,6 +11,8 @@
 #include "static_storage.hpp"
 #include "chunked_storage.hpp"
 
+// BaseVectorIterator
+
 template<
   typename ElemT,
   template<typename StorageT, size_t StorageSize> class Storage,
@@ -29,7 +31,7 @@ class BaseVectorIterator {
   >;
 
  public:
-  using iterator_category = std::random_access_iterator_tag;
+  using iterator_category = typename Vector::iterator_category;
 
   using value_type      = typename Vector::value_type;
   using pointer         = std::conditional_t<is_const,
@@ -85,7 +87,7 @@ class BaseVectorIterator {
     return *this;
   }
 
-  BaseVectorIterator& operator+=(const difference_type diff) {
+  inline BaseVectorIterator& operator+=(const difference_type diff) {
     assert(vector_ != nullptr);
 
     CheckValid(index_ + diff);
@@ -94,85 +96,94 @@ class BaseVectorIterator {
     return *this;
   }
 
-  BaseVectorIterator& operator-=(const difference_type diff) {
+  inline BaseVectorIterator& operator-=(const difference_type diff) {
     return this->operator+=(-diff);
   }
 
-  BaseVectorIterator& operator++() {
+  inline BaseVectorIterator& operator++() {
     return this->operator+=(1);
   }
 
-  BaseVectorIterator& operator--() {
+  inline BaseVectorIterator& operator--() {
     return this->operator-=(1);
   }
 
-  BaseVectorIterator operator++(int) {
+  inline BaseVectorIterator operator++(int) {
     BaseVectorIterator old(*this);
     this->operator++();
     return old;
   }
 
-  BaseVectorIterator operator--(int) {
+  inline BaseVectorIterator operator--(int) {
     BaseVectorIterator old(*this);
     this->operator--();
     return old;
   }
 
-  reference operator[](const size_t offset) {
+  inline reference operator[](const size_t offset) {
     CheckOverflow(index_ + offset);
     return vector_->At(index_ + offset);
   }
 
+  inline BaseVectorIterator operator+(difference_type diff) const {
+    CheckValid(index_ + diff);
+    return BaseVectorIterator<Vector, ElemT>(vector_, index_ + diff);
+  }
+
+  inline BaseVectorIterator operator-(difference_type diff) const {
+    return operator+(-diff);
+  }
+
   template<typename OtherVector, typename OtherElemT>
-  difference_type operator-(const BaseVectorIterator<OtherVector, OtherElemT>& rhs) {
+  inline difference_type operator-(const BaseVectorIterator<OtherVector, OtherElemT>& rhs) const {
     CheckSameVectors(rhs);
 
     return index_ - rhs.index_;
   }
 
-  reference operator*() const {
+  inline reference operator*() const {
     CheckOverflow(index_);
 
     return vector_->At(index_);
   }
 
-  pointer operator->() const {
+  inline pointer operator->() const {
     CheckOverflow(index_);
 
     return &vector_->At(index_);
   }
 
   template<typename OtherVector, typename OtherElemT>
-  bool operator==(const BaseVectorIterator<OtherVector, OtherElemT>& rhs) const {
+  inline bool operator==(const BaseVectorIterator<OtherVector, OtherElemT>& rhs) const {
     CheckSameVectors(rhs);
 
     return index_ == rhs.index_;
   }
 
   template<typename OtherVector, typename OtherElemT>
-  bool operator!=(const BaseVectorIterator<OtherVector, OtherElemT>& rhs) const {
+  inline bool operator!=(const BaseVectorIterator<OtherVector, OtherElemT>& rhs) const {
     return !(*this == rhs);
   }
 
   template<typename OtherVector, typename OtherElemT>
-  bool operator<(const BaseVectorIterator<OtherVector, OtherElemT>& rhs) const {
+  inline bool operator<(const BaseVectorIterator<OtherVector, OtherElemT>& rhs) const {
     CheckSameVectors(rhs);
 
     return index_ < rhs.index_;
   }
 
   template<typename OtherVector, typename OtherElemT>
-  bool operator>(const BaseVectorIterator<OtherVector, OtherElemT>& rhs) const {
+  inline bool operator>(const BaseVectorIterator<OtherVector, OtherElemT>& rhs) const {
     return rhs < *this;
   }
 
   template<typename OtherVector, typename OtherElemT>
-  bool operator<=(const BaseVectorIterator<OtherVector, OtherElemT>& rhs) const {
+  inline bool operator<=(const BaseVectorIterator<OtherVector, OtherElemT>& rhs) const {
     return !(*this > rhs);
   }
 
   template<typename OtherVector, typename OtherElemT>
-  bool operator>=(const BaseVectorIterator<OtherVector, OtherElemT>& rhs) const {
+  inline bool operator>=(const BaseVectorIterator<OtherVector, OtherElemT>& rhs) const {
     return !(*this < rhs);
   }
 
@@ -182,19 +193,19 @@ class BaseVectorIterator {
   static constexpr const char* const DIFFERENT_VECTORS_MSG_ = "iterators of different vectors";
 
  private:
-  void CheckValid(const size_t index) const {
+  inline void CheckValid(const size_t index) const {
     if (index != -1ULL && index > vector_->Size()) {
       throw std::logic_error(INVALID_ITERATOR_MSG_);
     }
   }
 
-  void CheckOverflow(const size_t index) const {
+  inline void CheckOverflow(const size_t index) const {
     if (index >= vector_->Size()) {
       throw std::out_of_range(OUT_OF_RANGE_MSG_);
     }
   }
 
-  void CheckSameVectors(const BaseVectorIterator& other) const {
+  inline void CheckSameVectors(const BaseVectorIterator& other) const {
     if (vector_ != other.vector_) {
       throw std::logic_error(DIFFERENT_VECTORS_MSG_);
     }
@@ -213,14 +224,16 @@ class BaseVectorIterator {
 
 };
 
-template<typename Vector, typename ElemT>
-class BaseVectorIterator;
+// VectorIterator aliases
 
 template<typename Vector>
 using VectorIterator = BaseVectorIterator<Vector, typename Vector::value_type>;
 
 template<typename Vector>
 using ConstVectorIterator = BaseVectorIterator<const Vector, const typename Vector::value_type>;
+
+
+// Vector
 
 template<
   typename ElemT,
@@ -239,9 +252,10 @@ class Vector {
 
   using difference_type = std::ptrdiff_t;
 
+  using iterator_category = std::random_access_iterator_tag;
+
  public:
-  Vector() {
-  }
+  Vector() = default;
 
   Vector(const std::initializer_list<ElemT>& init_list) {
     for (const ElemT& value : init_list) {
@@ -259,8 +273,7 @@ class Vector {
 
   Vector(Vector&& other_move) = default;
 
-  ~Vector() {
-  }
+  ~Vector() = default;
 
   Vector& operator=(const Vector& other_copy) {
     if (this == &other_copy) {
@@ -281,22 +294,53 @@ class Vector {
     return *this;
   }
 
-  VectorIterator<Vector> begin() {
-    return VectorIterator<Vector>(this, 0);
-  }
-
-  VectorIterator<Vector> end() {
-    return VectorIterator<Vector>(this, Size());
-  }
-
-  ConstVectorIterator<Vector> cbegin() const {
+  inline ConstVectorIterator<Vector> cbegin() const {
     return ConstVectorIterator<Vector>(this, 0);
   }
 
-  ConstVectorIterator<Vector> cend() const {
+  inline ConstVectorIterator<Vector> cend() const {
     return ConstVectorIterator<Vector>(this, Size());
   }
 
+  inline VectorIterator<Vector> begin() {
+    return VectorIterator<Vector>(this, 0);
+  }
+
+  inline ConstVectorIterator<Vector> begin() const {
+    return cbegin();
+  }
+
+  inline VectorIterator<Vector> end() {
+    return VectorIterator<Vector>(this, Size());
+  }
+
+  inline ConstVectorIterator<Vector> end() const {
+    return cend();
+  }
+
+  inline std::reverse_iterator<ConstVectorIterator<Vector>> crbegin() const {
+    return std::make_reverse_iterator(ConstVectorIterator<Vector>(this, 0));
+  }
+
+  inline std::reverse_iterator<ConstVectorIterator<Vector>> crend() const {
+    return std::make_reverse_iterator(ConstVectorIterator<Vector>(this, Size()));
+  }
+
+  inline std::reverse_iterator<VectorIterator<Vector>> rbegin() {
+    return std::make_reverse_iterator(VectorIterator<Vector>(this, 0));
+  }
+
+  inline std::reverse_iterator<VectorIterator<Vector>> rend() {
+    return std::make_reverse_iterator(VectorIterator<Vector>(this, Size()));
+  }
+
+  inline std::reverse_iterator<ConstVectorIterator<Vector>> rbegin() const {
+    return crbegin();
+  }
+
+  inline std::reverse_iterator<ConstVectorIterator<Vector>> rend() const {
+    return crend();
+  }
 
   [[nodiscard]] inline ElemT& At(const size_t index) noexcept {
     return storage_.At(index);
@@ -383,16 +427,78 @@ class Vector {
 
 };
 
+class BoolProxy {
+  public:
+  BoolProxy(uint8_t& byte, uint8_t bit) : byte_(byte), bit_(bit) {
+    assert(bit < BITS_CNT_);
+  }
+
+  BoolProxy(const BoolProxy& other_copy) : byte_(other_copy.byte_), bit_(other_copy.bit_) {}
+  BoolProxy(BoolProxy&& other_move) : byte_(other_move.byte_), bit_(other_move.bit_) {}
+
+  inline bool GetValue() const noexcept {
+    return (byte_ >> bit_) & 0x1;
+  }
+
+  void SetValue(bool value) {
+    byte_ &= ~(1 << bit_);
+    if (value) {
+      byte_ |= (1 << bit_);
+    }
+  }
+
+  operator bool() const noexcept {
+    return GetValue();
+  }
+
+  BoolProxy& operator=(bool value) noexcept {
+    SetValue(value);
+    return *this;
+  }
+
+  BoolProxy& operator=(const BoolProxy& other_copy) noexcept {
+    SetValue(other_copy.GetValue());
+    return *this;
+  }
+
+  BoolProxy& operator=(BoolProxy&& other_move) noexcept {
+    SetValue(other_move.GetValue());
+    return *this;
+  }
+
+ private:
+  uint8_t& byte_;
+  const uint8_t bit_;
+
+ public:
+  static const size_t BITS_CNT_ = 8;
+  static const size_t OFFSET_   = 3;
+
+};
+
+
+// bool sepcialization
+
 template<
   template<typename StorageT, size_t StorageSize> class Storage,
   size_t N
 >
 class Vector<bool, Storage, N> {
-  class BoolProxy;
+ public:
+  using value_type = bool;
+
+  using pointer = bool*;
+  using const_pointer = const bool*;
+
+  using reference = BoolProxy;
+  using const_reference = const BoolProxy;
+
+  using difference_type = std::ptrdiff_t;
+
+  using iterator_category = std::random_access_iterator_tag;
 
  public:
-  Vector() {
-  }
+  Vector() = default;
 
   Vector(const std::initializer_list<bool>& init_list) {
     for (bool value : init_list) {
@@ -400,14 +506,61 @@ class Vector<bool, Storage, N> {
     }
   }
 
-  Vector(const size_t size) : storage_(CalcSize(size)), size_{size} {
+  explicit Vector(const size_t size) : storage_(CalcSize(size)), size_{size} {
   }
 
   Vector(const Vector& other_copy) = default;
 
   Vector(Vector&& other_move) = default;
 
-  ~Vector() {
+  ~Vector() = default;
+
+  inline ConstVectorIterator<Vector> cbegin() const {
+    return ConstVectorIterator<Vector>(this, 0);
+  }
+
+  inline ConstVectorIterator<Vector> cend() const {
+    return ConstVectorIterator<Vector>(this, Size());
+  }
+
+  inline VectorIterator<Vector> begin() {
+    return VectorIterator<Vector>(this, 0);
+  }
+
+  inline ConstVectorIterator<Vector> begin() const {
+    return cbegin();
+  }
+
+  inline VectorIterator<Vector> end() {
+    return VectorIterator<Vector>(this, Size());
+  }
+
+  inline ConstVectorIterator<Vector> end() const {
+    return cend();
+  }
+
+  inline std::reverse_iterator<ConstVectorIterator<Vector>> crbegin() const {
+    return std::make_reverse_iterator(ConstVectorIterator<Vector>(this, 0));
+  }
+
+  inline std::reverse_iterator<ConstVectorIterator<Vector>> crend() const {
+    return std::make_reverse_iterator(ConstVectorIterator<Vector>(this, Size()));
+  }
+
+  inline std::reverse_iterator<VectorIterator<Vector>> rbegin() {
+    return std::make_reverse_iterator(VectorIterator<Vector>(this, 0));
+  }
+
+  inline std::reverse_iterator<VectorIterator<Vector>> rend() {
+    return std::make_reverse_iterator(VectorIterator<Vector>(this, Size()));
+  }
+
+  inline std::reverse_iterator<ConstVectorIterator<Vector>> rbegin() const {
+    return crbegin();
+  }
+
+  inline std::reverse_iterator<ConstVectorIterator<Vector>> rend() const {
+    return crend();
   }
 
   Vector& operator=(const Vector& other_copy) {
@@ -504,50 +657,18 @@ class Vector<bool, Storage, N> {
   }
 
  private:
-  class BoolProxy {
-   public:
-    BoolProxy(uint8_t& byte, uint8_t bit) : byte_(byte), bit_(bit) {
-      assert(bit < BITS_CNT_);
-    }
-
-    inline bool GetValue() const noexcept {
-      return (byte_ >> bit_) & 0x1;
-    }
-
-    void SetValue(bool value) {
-      byte_ &= ~(1 << bit_);
-      if (value) {
-        byte_ |= (1 << bit_);
-      }
-    }
-
-    operator bool() const noexcept {
-      return GetValue();
-    }
-
-    BoolProxy& operator=(bool value) noexcept {
-      SetValue(value);
-      return *this;
-    }
-
-    BoolProxy& operator=(const BoolProxy& other_copy) noexcept {
-      SetValue(other_copy.GetValue());
-      return *this;
-    }
-
-   private:
-    uint8_t& byte_;
-    const uint8_t bit_;
-
-  };
-
- private:
-  static const size_t BITS_CNT_ = 8;
-  static const size_t OFFSET_   = 3;
+  static const size_t BITS_CNT_ = BoolProxy::BITS_CNT_;
+  static const size_t OFFSET_   = BoolProxy::OFFSET_;
 
   Storage<uint8_t, CalcSize(N)> storage_;
   size_t size_{0};
 
 };
+
+void swap(BoolProxy a, BoolProxy b) {
+  BoolProxy tmp = a;
+  a = b;
+  b = tmp;
+}
 
 #endif /* vector.hpp */
